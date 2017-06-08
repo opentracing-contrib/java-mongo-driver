@@ -10,31 +10,26 @@ pom.xml
 <dependency>
     <groupId>io.opentracing.contrib</groupId>
     <artifactId>opentracing-mongo-driver</artifactId>
-    <version>0.0.1</version>
+    <version>0.0.2</version>
 </dependency>
 ```
 
 ## Usage
 
-`DefaultSpanManager` is used to get active span
-
 ```java
 // Instantiate tracer
 Tracer tracer = ...
 
-// Register tracer with GlobalTracer
-GlobalTracer.register(tracer);
-
 
 // Instantiate Synchronous Tracing MongoClient
-MongoClient mongoClient = new TracingMongoClient(...);
+MongoClient mongoClient = new TracingMongoClient(tracer, ...);
 
 // Instantiate Asynchronous Tracing MongoClient
-MongoClient mongoClient = new TracingAsyncMongoClient(...);
+MongoClient mongoClient = new TracingAsyncMongoClient(tracer, ...);
 
 ```
 
 [ci-img]: https://travis-ci.org/opentracing-contrib/java-mongo-driver.svg?branch=master
 [ci]: https://travis-ci.org/opentracing-contrib/java-mongo-driver
-[maven-img]: https://img.shields.io/maven-central/v/io.opentracing.contrib/opentracing-mongo-driver.svg?maxAge=2592000
+[maven-img]: https://img.shields.io/maven-central/v/io.opentracing.contrib/opentracing-mongo-driver.svg
 [maven]: http://search.maven.org/#search%7Cga%7C1%7Copentracing-mongo-driver
