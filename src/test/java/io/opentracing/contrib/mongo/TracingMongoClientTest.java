@@ -18,5 +18,6 @@ public class TracingMongoClientTest {
         new MongoClientURI("mongodb://localhost"),
         MongoDriverInformation.builder().build());
     assertEquals(1, mongoClient.getMongoClientOptions().getCommandListeners().size());
+    mongoClient.close();
   }
 }

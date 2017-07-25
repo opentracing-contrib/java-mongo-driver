@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class MongoTest {
+
   private static final MockTracer mockTracer = new MockTracer(new ThreadLocalActiveSpanSource(),
       MockTracer.Propagator.TEXT_MAP);
   private MongodExecutable mongodExecutable;
@@ -100,6 +101,7 @@ public class MongoTest {
     });
 
     assertTrue(latch.await(30, TimeUnit.SECONDS));
+    mongoClient.close();
 
     List<MockSpan> finished = mockTracer.finishedSpans();
     assertEquals(2, finished.size());
@@ -110,13 +112,15 @@ public class MongoTest {
 
   @Test
   public void sync() throws Exception {
-    MongoClient mongo = new TracingMongoClient(
+    MongoClient mongoClient = new TracingMongoClient(
         mockTracer,
         new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort()));
 
-    MongoDatabase db = mongo.getDatabase("test");
+    MongoDatabase db = mongoClient.getDatabase("test");
     MongoCollection<Document> col = db.getCollection("testCol");
     col.insertOne(new Document("testDoc", new Date()));
+
+    mongoClient.close();
 
     List<MockSpan> finished = mockTracer.finishedSpans();
     assertEquals(1, finished.size());
