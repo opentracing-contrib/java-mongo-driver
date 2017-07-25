@@ -88,7 +88,7 @@ public class TracingMongoClient extends MongoClient {
     this(tracer, toServerAddressList(uri.getHosts()),
         uri.getCredentials() != null ? Collections.singletonList(uri.getCredentials())
             : Collections.<MongoCredential>emptyList(),
-        MongoClientOptions.builder().addCommandListener(new TracingCommandListener(tracer)).build(),
+        uri.getOptions(),
         mongoDriverInformation);
   }
 

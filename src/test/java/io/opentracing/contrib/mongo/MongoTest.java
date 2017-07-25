@@ -24,6 +24,7 @@ import de.flapdoodle.embed.process.config.IRuntimeConfig;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
+import io.opentracing.util.ThreadLocalActiveSpanSource;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -35,8 +36,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class MongoTest {
-
-  private static final MockTracer mockTracer = new MockTracer(MockTracer.Propagator.TEXT_MAP);
+  private static final MockTracer mockTracer = new MockTracer(new ThreadLocalActiveSpanSource(),
+      MockTracer.Propagator.TEXT_MAP);
   private MongodExecutable mongodExecutable;
   private IMongodConfig mongodConfig;
 
@@ -46,17 +47,8 @@ public class MongoTest {
 
     Command command = Command.MongoD;
 
-    //IDirectory artifactStorePath = new FixedPath("test");
-    //ITempNaming executableNaming = new UUIDTempNaming();
-
     IRuntimeConfig runtimeConfig = new RuntimeConfigBuilder()
         .defaults(command)
-                /*.artifactStore(new ExtractedArtifactStoreBuilder()
-                        .defaults(command)
-                        .download(new DownloadConfigBuilder()
-                                .defaultsForCommand(command)
-                                .artifactStorePath(artifactStorePath))
-                        .executableNaming(executableNaming))*/
         .build();
 
     mongodConfig = new MongodConfigBuilder()
@@ -84,14 +76,15 @@ public class MongoTest {
     MongoClientSettings settings = MongoClientSettings.builder().clusterSettings(clusterSettings)
         .build();
 
-    com.mongodb.async.client.MongoClient mongoClient = new TracingAsyncMongoClient(mockTracer, settings);
+    com.mongodb.async.client.MongoClient mongoClient = new TracingAsyncMongoClient(mockTracer,
+        settings);
 
     com.mongodb.async.client.MongoDatabase database = mongoClient.getDatabase("test");
     com.mongodb.async.client.MongoCollection<Document> collection = database.getCollection("test");
 
     final CountDownLatch latch = new CountDownLatch(2);
 
-    //collection.
+    // collection
     collection.insertOne(new Document("testDoc", new Date()), new SingleResultCallback<Void>() {
       @Override
       public void onResult(Void result, Throwable t) {
