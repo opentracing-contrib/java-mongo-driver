@@ -4,7 +4,6 @@ import com.mongodb.event.CommandFailedEvent;
 import com.mongodb.event.CommandListener;
 import com.mongodb.event.CommandStartedEvent;
 import com.mongodb.event.CommandSucceededEvent;
-import io.opentracing.ActiveSpan;
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.tag.Tags;
@@ -29,7 +28,7 @@ public class TracingCommandListener implements CommandListener {
    */
   private final Map<Integer, Span> cache = new ConcurrentHashMap<>();
 
-  public TracingCommandListener(Tracer tracer) {
+  TracingCommandListener(Tracer tracer) {
     this.tracer = tracer;
   }
 
@@ -56,17 +55,9 @@ public class TracingCommandListener implements CommandListener {
     }
   }
 
-
   private Span buildSpan(CommandStartedEvent event) {
-
     Tracer.SpanBuilder spanBuilder = tracer.buildSpan(event.getCommandName())
-        .ignoreActiveSpan()
         .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
-
-    ActiveSpan parent = tracer.activeSpan();
-    if (parent != null) {
-      spanBuilder.asChildOf(parent);
-    }
 
     Span span = spanBuilder.startManual();
     decorate(span, event);
