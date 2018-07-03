@@ -17,7 +17,7 @@ import java.util.function.Function;
 
 public class MongoSpanNameProvider {
 
-  private static final String NO_OPERATION = "unkown";
+  private static final String NO_OPERATION = "unknown";
 
   public static Function<String, String> OPERATION_NAME = (operationName) -> ((operationName == null) ? NO_OPERATION : operationName);
 
