@@ -15,31 +15,62 @@ package io.opentracing.contrib.mongo;
 
 import java.util.function.Function;
 
+import org.bson.BsonDocument;
 import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mockito;
 
+import com.mongodb.connection.ConnectionDescription;
+import com.mongodb.event.CommandStartedEvent;
 
-//import com.mongodb.event.CommandStartedEvent;
-
+import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
+
+import static org.junit.Assert.assertEquals;
+
+//import com.mongodb.event.CommandStartedEvent;
 
 //import static org.junit.Assert.assertEquals;
 
 public class TracingCommandListenerTest {
 
   Tracer tracer = new MockTracer();
-  private MockSpan span;
   private String prefix = "mongo.";
   Function<String, String> prefixSpanName;
+  Function<String, String> operationName;
   TracingCommandListener withProvider;
   TracingCommandListener withoutProvider;
+  CommandStartedEvent event;
+  Span span;
+  ConnectionDescription connection;
+  BsonDocument doc;
 
   @Before
   public void setUp() {
+    operationName = MongoSpanNameProvider.OPERATION_NAME;
     prefixSpanName = MongoSpanNameProvider.PREFIX_OPERATION_NAME(prefix);
     withProvider = new TracingCommandListener(tracer, prefixSpanName);
     withoutProvider = new TracingCommandListener(tracer);
+    connection = Mockito.mock(ConnectionDescription.class);
+    doc = Mockito.mock(BsonDocument.class);
+    event = new CommandStartedEvent(1, connection, "Borrowers", "get", doc);
+  }
+
+  @Test
+  public void testDefault() {
+    //Mockito.doNothing().when(withoutProvider).decorate(span, event);
+    span = withoutProvider.buildSpan(event);
+    MockSpan mockSpan = (MockSpan) span;
+    assertEquals(mockSpan.operationName(), operationName.apply(event.getCommandName()));
+  }
+
+  @Test
+  public void testPrefix() {
+    span = withProvider.buildSpan(event);
+    MockSpan mockSpan = (MockSpan) span;
+    assertEquals(mockSpan.operationName(), prefixSpanName.apply(event.getCommandName()));
   }
 
 }

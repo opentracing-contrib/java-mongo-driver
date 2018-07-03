@@ -76,7 +76,7 @@ public class TracingCommandListener implements CommandListener {
     }
   }
 
-  private Span buildSpan(CommandStartedEvent event) {
+  Span buildSpan(CommandStartedEvent event) {
     Tracer.SpanBuilder spanBuilder = tracer.buildSpan(mongoSpanNameProvider.apply(event.getCommandName()))
         .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
 
@@ -86,7 +86,7 @@ public class TracingCommandListener implements CommandListener {
     return span;
   }
 
-  private static void decorate(Span span, CommandStartedEvent event) {
+  static void decorate(Span span, CommandStartedEvent event) {
     Tags.COMPONENT.set(span, COMPONENT_NAME);
     Tags.DB_STATEMENT.set(span, event.getCommand().toString());
     Tags.DB_INSTANCE.set(span, event.getDatabaseName());
