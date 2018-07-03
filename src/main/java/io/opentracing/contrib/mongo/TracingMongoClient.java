@@ -33,11 +33,6 @@ import java.util.List;
  */
 public class TracingMongoClient extends MongoClient {
 
-  /*span name provider initial thoughts: send function into client constructor.
-    Pass function onto CommandListener and set to a field for the function
-    Call .apply on that function in buildspan in CommandListener.
-   */
-
   public TracingMongoClient(Tracer tracer) {
     this(tracer, new ServerAddress());
   }

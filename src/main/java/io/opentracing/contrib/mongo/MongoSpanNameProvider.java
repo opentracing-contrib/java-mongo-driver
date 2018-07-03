@@ -16,12 +16,14 @@ package io.opentracing.contrib.mongo;
 import java.util.function.Function;
 
 public class MongoSpanNameProvider {
-  public static Function<String, String> OPERATION_NAME = (operationName) -> ((operationName == null) ? "unknown" : operationName);
 
+  private static final String NO_OPERATION = "unkown";
+
+  public static Function<String, String> OPERATION_NAME = (operationName) -> ((operationName == null) ? NO_OPERATION : operationName);
 
   public static Function<String, String> PREFIX_OPERATION_NAME(final String prefix) {
     return (operationName) ->
         ((prefix == null) ? "" : prefix)
-            + ((operationName == null) ? "unknown" : operationName);
+            + ((operationName == null) ? NO_OPERATION : operationName);
   }
 }
