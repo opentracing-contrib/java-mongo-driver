@@ -13,6 +13,7 @@
  */
 package io.opentracing.contrib.mongo;
 
+import java.util.function.Function;
 import com.mongodb.event.CommandFailedEvent;
 import com.mongodb.event.CommandListener;
 import com.mongodb.event.CommandStartedEvent;
@@ -36,6 +37,7 @@ public class TracingCommandListener implements CommandListener {
 
   static final String COMPONENT_NAME = "java-mongo";
   private final Tracer tracer;
+  private Function<String, String> mongoSpanNameProvider;
   /**
    * Cache for (request id, span) pairs
    */
@@ -43,6 +45,12 @@ public class TracingCommandListener implements CommandListener {
 
   TracingCommandListener(Tracer tracer) {
     this.tracer = tracer;
+    mongoSpanNameProvider = MongoSpanNameProvider.OPERATION_NAME;
+  }
+
+  TracingCommandListener(Tracer tracer, Function<String, String> customNameProvider) {
+    this.tracer = tracer;
+    mongoSpanNameProvider = customNameProvider;
   }
 
   @Override
@@ -68,8 +76,8 @@ public class TracingCommandListener implements CommandListener {
     }
   }
 
-  private Span buildSpan(CommandStartedEvent event) {
-    Tracer.SpanBuilder spanBuilder = tracer.buildSpan(event.getCommandName())
+  Span buildSpan(CommandStartedEvent event) {
+    Tracer.SpanBuilder spanBuilder = tracer.buildSpan(mongoSpanNameProvider.apply(event.getCommandName()))
         .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
 
     Span span = spanBuilder.start();
