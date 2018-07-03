@@ -56,7 +56,6 @@ public class TracingCommandListenerTest {
         , "commandName"
         , new BsonDocument()
     );
-
   }
 
   @Test
@@ -72,5 +71,4 @@ public class TracingCommandListenerTest {
     MockSpan mockSpan = (MockSpan) span;
     assertEquals(mockSpan.operationName(), prefixSpanName.apply(event.getCommandName()));
   }
-
 }

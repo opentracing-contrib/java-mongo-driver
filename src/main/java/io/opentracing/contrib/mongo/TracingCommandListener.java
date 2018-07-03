@@ -86,7 +86,7 @@ public class TracingCommandListener implements CommandListener {
     return span;
   }
 
-  static void decorate(Span span, CommandStartedEvent event) {
+  private static void decorate(Span span, CommandStartedEvent event) {
     Tags.COMPONENT.set(span, COMPONENT_NAME);
     Tags.DB_STATEMENT.set(span, event.getCommand().toString());
     Tags.DB_INSTANCE.set(span, event.getDatabaseName());
