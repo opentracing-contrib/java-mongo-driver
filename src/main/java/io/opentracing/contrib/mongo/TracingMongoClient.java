@@ -14,6 +14,7 @@
 package io.opentracing.contrib.mongo;
 
 
+import java.util.function.Function;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
@@ -31,6 +32,11 @@ import java.util.List;
  * @see MongoClient
  */
 public class TracingMongoClient extends MongoClient {
+
+  /*span name provider initial thoughts: send function into client constructor.
+    Pass function onto CommandListener and set to a field for the function
+    Call .apply on that function in buildspan in CommandListener.
+   */
 
   public TracingMongoClient(Tracer tracer) {
     this(tracer, new ServerAddress());
@@ -71,7 +77,6 @@ public class TracingMongoClient extends MongoClient {
             tracer)).build());
   }
 
-
   public TracingMongoClient(Tracer tracer, final ServerAddress addr,
       final MongoCredential credential, final MongoClientOptions options) {
     super(addr, credential,
@@ -94,12 +99,25 @@ public class TracingMongoClient extends MongoClient {
         tracer)).build());
   }
 
+  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+      final MongoClientOptions options, Function<String, String> spanNameProvider) {
+    super(seeds, MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
+        tracer, spanNameProvider)).build());
+  }
+
   @Deprecated
   public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
       final List<MongoCredential> credentialsList, final MongoClientOptions options) {
     super(seeds, credentialsList,
         MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
             tracer)).build());
+  }
+
+  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+      final List<MongoCredential> credentialsList, final MongoClientOptions options, Function<String, String> spanNameProvider) {
+    super(seeds, credentialsList,
+        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
+            tracer, spanNameProvider)).build());
   }
 
   public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
