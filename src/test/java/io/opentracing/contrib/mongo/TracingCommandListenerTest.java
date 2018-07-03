@@ -18,9 +18,11 @@ import java.util.function.Function;
 import org.bson.BsonDocument;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
+import com.mongodb.ServerAddress;
+import com.mongodb.connection.ClusterId;
 import com.mongodb.connection.ConnectionDescription;
+import com.mongodb.connection.ServerId;
 import com.mongodb.event.CommandStartedEvent;
 
 import io.opentracing.Span;
@@ -29,10 +31,6 @@ import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 
 import static org.junit.Assert.assertEquals;
-
-//import com.mongodb.event.CommandStartedEvent;
-
-//import static org.junit.Assert.assertEquals;
 
 public class TracingCommandListenerTest {
 
@@ -44,8 +42,6 @@ public class TracingCommandListenerTest {
   TracingCommandListener withoutProvider;
   CommandStartedEvent event;
   Span span;
-  ConnectionDescription connection;
-  BsonDocument doc;
 
   @Before
   public void setUp() {
@@ -53,14 +49,18 @@ public class TracingCommandListenerTest {
     prefixSpanName = MongoSpanNameProvider.PREFIX_OPERATION_NAME(prefix);
     withProvider = new TracingCommandListener(tracer, prefixSpanName);
     withoutProvider = new TracingCommandListener(tracer);
-    connection = Mockito.mock(ConnectionDescription.class);
-    doc = Mockito.mock(BsonDocument.class);
-    event = new CommandStartedEvent(1, connection, "Borrowers", "get", doc);
+    event = new CommandStartedEvent(
+        1
+        , new ConnectionDescription(new ServerId(new ClusterId(), new ServerAddress()))
+        , "databaseName"
+        , "commandName"
+        , new BsonDocument()
+    );
+
   }
 
   @Test
   public void testDefault() {
-    //Mockito.doNothing().when(withoutProvider).decorate(span, event);
     span = withoutProvider.buildSpan(event);
     MockSpan mockSpan = (MockSpan) span;
     assertEquals(mockSpan.operationName(), operationName.apply(event.getCommandName()));
