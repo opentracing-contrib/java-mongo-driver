@@ -38,7 +38,6 @@ TracingMongoClient client = new TracingMongoClient(tracer, replicaSetAddresses, 
 Document doc = new Document();
 client.getDatabase("db").getCollection("collection).insertOne(doc);
 //Span name is now set to "mongo.insert"
-
 ```
 
 [ci-img]: https://travis-ci.org/opentracing-contrib/java-mongo-driver.svg?branch=master
