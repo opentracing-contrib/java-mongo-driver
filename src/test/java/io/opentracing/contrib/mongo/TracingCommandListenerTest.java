@@ -48,8 +48,7 @@ public class TracingCommandListenerTest {
   @Before
   public void setUp() {
     operationName = new NoopSpanNameProvider();
-    String prefix = "mongo.";
-    prefixSpanName = new PrefixSpanNameProvider(prefix);
+    prefixSpanName = new PrefixSpanNameProvider("mongo.");
     withProvider = new TracingCommandListener(tracer, prefixSpanName);
     withoutProvider = new TracingCommandListener(tracer);
     event = new CommandStartedEvent(
