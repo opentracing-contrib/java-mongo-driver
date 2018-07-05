@@ -13,8 +13,6 @@
  */
 package io.opentracing.contrib.mongo;
 
-import java.util.function.Function;
-
 import org.bson.BsonDocument;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +25,9 @@ import com.mongodb.event.CommandStartedEvent;
 
 import io.opentracing.Span;
 import io.opentracing.Tracer;
+import io.opentracing.contrib.mongo.providers.MongoSpanNameProvider;
+import io.opentracing.contrib.mongo.providers.NoopSpanNameProvider;
+import io.opentracing.contrib.mongo.providers.PrefixSpanNameProvider;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 
@@ -34,19 +35,21 @@ import static org.junit.Assert.assertEquals;
 
 public class TracingCommandListenerTest {
 
-  Tracer tracer = new MockTracer();
-  private String prefix = "mongo.";
-  Function<String, String> prefixSpanName;
-  Function<String, String> operationName;
-  TracingCommandListener withProvider;
-  TracingCommandListener withoutProvider;
-  CommandStartedEvent event;
-  Span span;
+  private Tracer tracer = new MockTracer();
+
+  private MongoSpanNameProvider prefixSpanName;
+
+  private MongoSpanNameProvider operationName;
+  private TracingCommandListener withProvider;
+  private TracingCommandListener withoutProvider;
+  private CommandStartedEvent event;
+  private Span span;
 
   @Before
   public void setUp() {
-    operationName = MongoSpanNameProvider.OPERATION_NAME;
-    prefixSpanName = MongoSpanNameProvider.PREFIX_OPERATION_NAME(prefix);
+    operationName = new NoopSpanNameProvider();
+    String prefix = "mongo.";
+    prefixSpanName = new PrefixSpanNameProvider(prefix);
     withProvider = new TracingCommandListener(tracer, prefixSpanName);
     withoutProvider = new TracingCommandListener(tracer);
     event = new CommandStartedEvent(
@@ -62,13 +65,13 @@ public class TracingCommandListenerTest {
   public void testDefault() {
     span = withoutProvider.buildSpan(event);
     MockSpan mockSpan = (MockSpan) span;
-    assertEquals(mockSpan.operationName(), operationName.apply(event.getCommandName()));
+    assertEquals(mockSpan.operationName(), operationName.generateName(event.getCommandName()));
   }
 
   @Test
   public void testPrefix() {
     span = withProvider.buildSpan(event);
     MockSpan mockSpan = (MockSpan) span;
-    assertEquals(mockSpan.operationName(), prefixSpanName.apply(event.getCommandName()));
+    assertEquals(mockSpan.operationName(), prefixSpanName.generateName(event.getCommandName()));
   }
 }

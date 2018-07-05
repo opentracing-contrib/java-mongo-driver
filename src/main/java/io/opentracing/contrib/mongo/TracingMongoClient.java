@@ -13,18 +13,19 @@
  */
 package io.opentracing.contrib.mongo;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-import java.util.function.Function;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoDriverInformation;
+
 import io.opentracing.Tracer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import io.opentracing.contrib.mongo.providers.MongoSpanNameProvider;
 
 /**
  * Tracing Mongo Client
@@ -95,7 +96,7 @@ public class TracingMongoClient extends MongoClient {
   }
 
   public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
-      final MongoClientOptions options, Function<String, String> spanNameProvider) {
+      final MongoClientOptions options, MongoSpanNameProvider spanNameProvider) {
     super(seeds, MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
         tracer, spanNameProvider)).build());
   }
@@ -109,7 +110,7 @@ public class TracingMongoClient extends MongoClient {
   }
 
   public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
-      final List<MongoCredential> credentialsList, final MongoClientOptions options, Function<String, String> spanNameProvider) {
+      final List<MongoCredential> credentialsList, final MongoClientOptions options, MongoSpanNameProvider spanNameProvider) {
     super(seeds, credentialsList,
         MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
             tracer, spanNameProvider)).build());
