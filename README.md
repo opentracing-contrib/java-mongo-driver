@@ -34,7 +34,12 @@ By default, span names are set to the operation performed by the Mongo client. T
 
 ```java
 //Create TracingMongoClient with custom span name
-TracingMongoClient client = new TracingMongoClient(tracer, replicaSetAddresses, credentials, clientOptions, new PrefixSpanNameProvider("mongo."));
+TracingMongoClient client = new TracingMongoClient(
+    tracer, 
+    replicaSetAddresses, 
+    credentials, 
+    clientOptions, 
+    new PrefixSpanNameProvider("mongo."));
 Document doc = new Document();
 client.getDatabase("db").getCollection("collection).insertOne(doc);
 //Span name is now set to "mongo.insert"
