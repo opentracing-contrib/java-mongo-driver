@@ -30,11 +30,11 @@ MongoClient mongoClient = new TracingAsyncMongoClient(tracer, ...);
 ```
 
 ### Mongo Span Name
-By default, span names are set to the operation performed by the Mongo client. To customize the span name, provide a Function to the client that alters the span name. If a function is not provided, the span name will remain the default. Refer to the MongoSpanNameProvider class for a function that prefixes the operation name.
+By default, span names are set to the operation performed by the Mongo client. To customize the span name, provide a MongoSpanNameProvider to the client that alters the span name. If a provder is not provided, the span name will remain the default. Refer to the PrefixSpanNameProvider class code necessary to prefix the operation name.
 
 ```java
 //Create TracingMongoClient with custom span name
-TracingMongoClient client = new TracingMongoClient(tracer, replicaSetAddresses, credentials, clientOptions, MongoSpanNameProvider.PREFIX_OPERATION_NAME("mongo."));
+TracingMongoClient client = new TracingMongoClient(tracer, replicaSetAddresses, credentials, clientOptions, new PrefixSpanNameProvider("mongo."));
 Document doc = new Document();
 client.getDatabase("db").getCollection("collection).insertOne(doc);
 //Span name is now set to "mongo.insert"
