@@ -29,6 +29,17 @@ MongoClient mongoClient = new TracingAsyncMongoClient(tracer, ...);
 
 ```
 
+### Mongo Span Name
+By default, span names are set to the operation performed by the Mongo client. To customize the span name, provide a MongoSpanNameProvider to the client that alters the span name. If a provder is not provided, the span name will remain the default.
+
+```java
+//Create TracingMongoClient with custom span name
+TracingMongoClient client = new TracingMongoClient(tracer, replicaSetAddresses, credentials, clientOptions, new PrefixSpanNameProvider("mongo."));
+Document doc = new Document();
+client.getDatabase("db").getCollection("collection).insertOne(doc);
+//Span name is now set to "mongo.insert"
+```
+
 [ci-img]: https://travis-ci.org/opentracing-contrib/java-mongo-driver.svg?branch=master
 [ci]: https://travis-ci.org/opentracing-contrib/java-mongo-driver
 [cov-img]: https://coveralls.io/repos/github/opentracing-contrib/java-mongo-driver/badge.svg?branch=master
