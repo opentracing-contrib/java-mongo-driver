@@ -45,6 +45,10 @@ client.getDatabase("db").getCollection("collection).insertOne(doc);
 // Span name is now set to "mongo.insert"
 ```
 
+## License
+
+[Apache 2.0 License](./LICENSE).
+
 [ci-img]: https://travis-ci.org/opentracing-contrib/java-mongo-driver.svg?branch=master
 [ci]: https://travis-ci.org/opentracing-contrib/java-mongo-driver
 [cov-img]: https://coveralls.io/repos/github/opentracing-contrib/java-mongo-driver/badge.svg?branch=master
