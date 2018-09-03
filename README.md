@@ -10,7 +10,7 @@ pom.xml
 <dependency>
     <groupId>io.opentracing.contrib</groupId>
     <artifactId>opentracing-mongo-driver</artifactId>
-    <version>0.0.4</version>
+    <version>VERSION</version>
 </dependency>
 ```
 
