@@ -39,7 +39,7 @@ MongoClient mongoClient = new TracingAsyncMongoClient(tracer, ...);
 
 ```
 
-### Builder
+### `MongoClientSettings.Builder` with `TracingCommandListener`
 ```java
 // Add TracingCommandListener to MongoClientSettings.Builder
 MongoClient mongoClient = MongoClients.create(
