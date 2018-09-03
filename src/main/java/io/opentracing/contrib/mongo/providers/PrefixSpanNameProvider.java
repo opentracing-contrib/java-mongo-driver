@@ -26,6 +26,6 @@ public class PrefixSpanNameProvider implements MongoSpanNameProvider {
   @Override
   public String generateName(String operationName) {
     return ((prefix == null) ? "" : prefix)
-      + ((operationName == null) ? NO_OPERATION : operationName);
+        + ((operationName == null) ? NO_OPERATION : operationName);
   }
 }

@@ -13,19 +13,17 @@
  */
 package io.opentracing.contrib.mongo;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
+import com.mongodb.MongoDriverInformation;
 import com.mongodb.ServerAddress;
-import com.mongodb.client.MongoDriverInformation;
-
 import io.opentracing.Tracer;
 import io.opentracing.contrib.mongo.providers.MongoSpanNameProvider;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Tracing Mongo Client
@@ -65,7 +63,6 @@ public class TracingMongoClient extends MongoClient {
         tracer)).build());
   }
 
-  @Deprecated
   public TracingMongoClient(Tracer tracer, final ServerAddress addr,
       final List<MongoCredential> credentialsList, final MongoClientOptions options) {
     super(addr, credentialsList,
@@ -101,7 +98,6 @@ public class TracingMongoClient extends MongoClient {
         tracer, spanNameProvider)).build());
   }
 
-  @Deprecated
   public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
       final List<MongoCredential> credentialsList, final MongoClientOptions options) {
     super(seeds, credentialsList,
@@ -110,7 +106,8 @@ public class TracingMongoClient extends MongoClient {
   }
 
   public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
-      final List<MongoCredential> credentialsList, final MongoClientOptions options, MongoSpanNameProvider spanNameProvider) {
+      final List<MongoCredential> credentialsList, final MongoClientOptions options,
+      MongoSpanNameProvider spanNameProvider) {
     super(seeds, credentialsList,
         MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
             tracer, spanNameProvider)).build());
@@ -135,7 +132,6 @@ public class TracingMongoClient extends MongoClient {
             tracer)).build(), mongoDriverInformation);
   }
 
-  @SuppressWarnings("deprecation")
   public TracingMongoClient(Tracer tracer, final MongoClientURI uri,
       final MongoDriverInformation mongoDriverInformation) {
     this(tracer, toServerAddressList(uri.getHosts()),
@@ -145,7 +141,6 @@ public class TracingMongoClient extends MongoClient {
         mongoDriverInformation);
   }
 
-  @Deprecated
   public TracingMongoClient(Tracer tracer, final ServerAddress addr,
       final List<MongoCredential> credentialsList, final MongoClientOptions options,
       final MongoDriverInformation mongoDriverInformation) {
@@ -154,7 +149,6 @@ public class TracingMongoClient extends MongoClient {
             tracer)).build(), mongoDriverInformation);
   }
 
-  @Deprecated
   public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
       final List<MongoCredential> credentialsList, final MongoClientOptions options,
       final MongoDriverInformation mongoDriverInformation) {

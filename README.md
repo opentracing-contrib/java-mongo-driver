@@ -10,7 +10,7 @@ pom.xml
 <dependency>
     <groupId>io.opentracing.contrib</groupId>
     <artifactId>opentracing-mongo-driver</artifactId>
-    <version>0.0.4</version>
+    <version>VERSION</version>
 </dependency>
 ```
 
@@ -20,12 +20,33 @@ pom.xml
 // Instantiate tracer
 Tracer tracer = ...
 
+// Optionally register tracer with GlobalTracer
+GlobalTracer.register(tracer);
+``` 
 
+There are 2 ways to instrument `MongoClient`:
+- using Mongo Tracing Client
+- using `MongoClientSettings.Builder` with `TracingCommandListener`
+
+### Mongo Tracing Client 
+
+```java
 // Instantiate Synchronous Tracing MongoClient
 MongoClient mongoClient = new TracingMongoClient(tracer, ...);
 
 // Instantiate Asynchronous Tracing MongoClient
 MongoClient mongoClient = new TracingAsyncMongoClient(tracer, ...);
+
+```
+
+### Builder
+```java
+// Add TracingCommandListener to MongoClientSettings.Builder
+MongoClient mongoClient = MongoClients.create(
+        MongoClientSettings.builder()
+                .addCommandListener(new TracingCommandListener(tracer))
+                ...
+                .build());
 
 ```
 

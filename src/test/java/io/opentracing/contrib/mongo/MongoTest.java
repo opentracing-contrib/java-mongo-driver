@@ -19,26 +19,23 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
 import com.mongodb.async.SingleResultCallback;
-import com.mongodb.async.client.MongoClientSettings;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.connection.ClusterSettings;
-import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
+import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.config.IRuntimeConfig;
+import de.flapdoodle.embed.process.runtime.Network;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
-import io.opentracing.util.ThreadLocalScopeManager;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -50,8 +47,7 @@ import org.junit.Test;
 
 public class MongoTest {
 
-  private static final MockTracer mockTracer = new MockTracer(new ThreadLocalScopeManager(),
-      MockTracer.Propagator.TEXT_MAP);
+  private static final MockTracer mockTracer = new MockTracer();
   private MongodExecutable mongodExecutable;
   private IMongodConfig mongodConfig;
 
@@ -59,19 +55,16 @@ public class MongoTest {
   public void before() throws Exception {
     mockTracer.reset();
 
-    Command command = Command.MongoD;
+    MongodStarter starter = MongodStarter.getDefaultInstance();
 
-    IRuntimeConfig runtimeConfig = new RuntimeConfigBuilder()
-        .defaults(command)
-        .build();
-
+    String bindIp = "127.0.0.1";
+    int port = 12345;
     mongodConfig = new MongodConfigBuilder()
         .version(Version.Main.PRODUCTION)
+        .net(new Net(bindIp, port, Network.localhostIsIPv6()))
         .build();
 
-    MongodStarter runtime = MongodStarter.getInstance(runtimeConfig);
-
-    mongodExecutable = runtime.prepare(mongodConfig);
+    mongodExecutable = starter.prepare(mongodConfig);
     mongodExecutable.start();
   }
 
@@ -84,10 +77,9 @@ public class MongoTest {
 
   @Test
   public void async() throws Exception {
-    ClusterSettings clusterSettings = ClusterSettings.builder().hosts(Collections.singletonList(
-        new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort())))
-        .build();
-    MongoClientSettings settings = MongoClientSettings.builder().clusterSettings(clusterSettings)
+    MongoClientSettings settings = MongoClientSettings.builder()
+        .applyConnectionString(
+            new ConnectionString("mongodb://localhost:" + mongodConfig.net().getPort()))
         .build();
 
     com.mongodb.async.client.MongoClient mongoClient = new TracingAsyncMongoClient(mockTracer,
@@ -145,7 +137,7 @@ public class MongoTest {
   private void checkSpans(List<MockSpan> mockSpans) {
     for (MockSpan mockSpan : mockSpans) {
       String operationName = mockSpan.operationName();
-      assertTrue(operationName.equals("insert"));
+      assertEquals("insert", operationName);
       assertEquals(Tags.SPAN_KIND_CLIENT, mockSpan.tags().get(Tags.SPAN_KIND.getKey()));
       assertEquals(TracingCommandListener.COMPONENT_NAME,
           mockSpan.tags().get(Tags.COMPONENT.getKey()));
