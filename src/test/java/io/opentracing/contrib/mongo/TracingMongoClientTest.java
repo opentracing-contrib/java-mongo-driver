@@ -17,7 +17,7 @@ import static org.junit.Assert.assertEquals;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientURI;
-import com.mongodb.client.MongoDriverInformation;
+import com.mongodb.MongoDriverInformation;
 import io.opentracing.noop.NoopTracerFactory;
 import java.net.UnknownHostException;
 import org.junit.Test;

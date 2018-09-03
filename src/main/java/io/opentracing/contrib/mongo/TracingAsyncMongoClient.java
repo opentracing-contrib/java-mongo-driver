@@ -15,17 +15,20 @@ package io.opentracing.contrib.mongo;
 
 
 import com.mongodb.ClientSessionOptions;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.MongoDriverInformation;
 import com.mongodb.async.SingleResultCallback;
+import com.mongodb.async.client.ChangeStreamIterable;
+import com.mongodb.async.client.ClientSession;
 import com.mongodb.async.client.ListDatabasesIterable;
 import com.mongodb.async.client.MongoClient;
-import com.mongodb.async.client.MongoClientSettings;
 import com.mongodb.async.client.MongoClients;
 import com.mongodb.async.client.MongoDatabase;
 import com.mongodb.async.client.MongoIterable;
-import com.mongodb.client.MongoDriverInformation;
-import com.mongodb.session.ClientSession;
 import io.opentracing.Tracer;
+import java.util.List;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 
 /**
@@ -50,9 +53,13 @@ public class TracingAsyncMongoClient implements MongoClient {
   }
 
   @Override
+  public void startSession(SingleResultCallback<ClientSession> callback) {
+    mongoClient.startSession(callback);
+  }
+
+  @Override
   public void startSession(ClientSessionOptions clientSessionOptions,
       SingleResultCallback<ClientSession> singleResultCallback) {
-
   }
 
   /**
@@ -75,7 +82,7 @@ public class TracingAsyncMongoClient implements MongoClient {
    * {@inheritDoc}
    */
   @Override
-  public MongoClientSettings getSettings() {
+  public com.mongodb.async.client.MongoClientSettings getSettings() {
     return mongoClient.getSettings();
   }
 
@@ -126,5 +133,49 @@ public class TracingAsyncMongoClient implements MongoClient {
   public <TResult> ListDatabasesIterable<TResult> listDatabases(ClientSession clientSession,
       Class<TResult> aClass) {
     return mongoClient.listDatabases(clientSession, aClass);
+  }
+
+  @Override
+  public ChangeStreamIterable<Document> watch() {
+    return mongoClient.watch();
+  }
+
+  @Override
+  public <TResult> ChangeStreamIterable<TResult> watch(Class<TResult> tResultClass) {
+    return mongoClient.watch(tResultClass);
+  }
+
+  @Override
+  public ChangeStreamIterable<Document> watch(List<? extends Bson> pipeline) {
+    return mongoClient.watch(pipeline);
+  }
+
+  @Override
+  public <TResult> ChangeStreamIterable<TResult> watch(List<? extends Bson> pipeline,
+      Class<TResult> tResultClass) {
+    return mongoClient.watch(pipeline, tResultClass);
+  }
+
+  @Override
+  public ChangeStreamIterable<Document> watch(ClientSession clientSession) {
+    return mongoClient.watch(clientSession);
+  }
+
+  @Override
+  public <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession,
+      Class<TResult> tResultClass) {
+    return mongoClient.watch(clientSession, tResultClass);
+  }
+
+  @Override
+  public ChangeStreamIterable<Document> watch(ClientSession clientSession,
+      List<? extends Bson> pipeline) {
+    return mongoClient.watch(clientSession, pipeline);
+  }
+
+  @Override
+  public <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession,
+      List<? extends Bson> pipeline, Class<TResult> tResultClass) {
+    return mongoClient.watch(pipeline, tResultClass);
   }
 }

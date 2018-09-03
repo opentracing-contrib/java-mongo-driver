@@ -13,6 +13,16 @@
  */
 package io.opentracing.contrib.mongo;
 
+import com.mongodb.event.CommandFailedEvent;
+import com.mongodb.event.CommandListener;
+import com.mongodb.event.CommandStartedEvent;
+import com.mongodb.event.CommandSucceededEvent;
+import io.opentracing.Span;
+import io.opentracing.Tracer;
+import io.opentracing.contrib.mongo.providers.MongoSpanNameProvider;
+import io.opentracing.contrib.mongo.providers.NoopSpanNameProvider;
+import io.opentracing.tag.Tags;
+import io.opentracing.util.GlobalTracer;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.Inet4Address;
@@ -21,17 +31,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.mongodb.event.CommandFailedEvent;
-import com.mongodb.event.CommandListener;
-import com.mongodb.event.CommandStartedEvent;
-import com.mongodb.event.CommandSucceededEvent;
-
-import io.opentracing.Span;
-import io.opentracing.Tracer;
-import io.opentracing.contrib.mongo.providers.MongoSpanNameProvider;
-import io.opentracing.contrib.mongo.providers.NoopSpanNameProvider;
-import io.opentracing.tag.Tags;
 
 /**
  * In Async Mongo driver methods of this Listener run in different threads therefore cache is used
@@ -47,14 +46,28 @@ public class TracingCommandListener implements CommandListener {
    */
   private final Map<Integer, Span> cache = new ConcurrentHashMap<>();
 
-  TracingCommandListener(Tracer tracer) {
+  public TracingCommandListener(Tracer tracer) {
     this.tracer = tracer;
     this.mongoSpanNameProvider = new NoopSpanNameProvider();
   }
 
-  TracingCommandListener(Tracer tracer, MongoSpanNameProvider customNameProvider) {
+  /**
+   * GlobalTracer is used to get tracer
+   */
+  public TracingCommandListener() {
+    this(GlobalTracer.get());
+  }
+
+  public TracingCommandListener(Tracer tracer, MongoSpanNameProvider customNameProvider) {
     this.tracer = tracer;
     this.mongoSpanNameProvider = customNameProvider;
+  }
+
+  /**
+   * GlobalTracer is used to get tracer
+   */
+  public TracingCommandListener(MongoSpanNameProvider customNameProvider) {
+    this(GlobalTracer.get(), customNameProvider);
   }
 
   @Override
@@ -81,7 +94,8 @@ public class TracingCommandListener implements CommandListener {
   }
 
   Span buildSpan(CommandStartedEvent event) {
-    Tracer.SpanBuilder spanBuilder = tracer.buildSpan(mongoSpanNameProvider.generateName(event.getCommandName()))
+    Tracer.SpanBuilder spanBuilder = tracer
+        .buildSpan(mongoSpanNameProvider.generateName(event.getCommandName()))
         .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
 
     Span span = spanBuilder.start();

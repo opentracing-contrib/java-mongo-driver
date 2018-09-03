@@ -19,10 +19,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
 import com.mongodb.async.SingleResultCallback;
-import com.mongodb.async.client.MongoClientSettings;
+import com.mongodb.async.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.connection.ClusterSettings;
@@ -84,10 +86,8 @@ public class MongoTest {
 
   @Test
   public void async() throws Exception {
-    ClusterSettings clusterSettings = ClusterSettings.builder().hosts(Collections.singletonList(
-        new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort())))
-        .build();
-    MongoClientSettings settings = MongoClientSettings.builder().clusterSettings(clusterSettings)
+    MongoClientSettings settings = MongoClientSettings.builder()
+        .applyConnectionString(new ConnectionString("mongodb://localhost:" + mongodConfig.net().getPort()))
         .build();
 
     com.mongodb.async.client.MongoClient mongoClient = new TracingAsyncMongoClient(mockTracer,
@@ -145,7 +145,7 @@ public class MongoTest {
   private void checkSpans(List<MockSpan> mockSpans) {
     for (MockSpan mockSpan : mockSpans) {
       String operationName = mockSpan.operationName();
-      assertTrue(operationName.equals("insert"));
+      assertEquals("insert", operationName);
       assertEquals(Tags.SPAN_KIND_CLIENT, mockSpan.tags().get(Tags.SPAN_KIND.getKey()));
       assertEquals(TracingCommandListener.COMPONENT_NAME,
           mockSpan.tags().get(Tags.COMPONENT.getKey()));
