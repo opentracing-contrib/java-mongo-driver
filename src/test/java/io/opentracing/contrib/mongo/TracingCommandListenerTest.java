@@ -1,5 +1,5 @@
 /*
- * Copyright 2017-2018 The OpenTracing Authors
+ * Copyright 2017-2019 The OpenTracing Authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -13,16 +13,13 @@
  */
 package io.opentracing.contrib.mongo;
 
-import org.bson.BsonDocument;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import com.mongodb.ServerAddress;
 import com.mongodb.connection.ClusterId;
 import com.mongodb.connection.ConnectionDescription;
 import com.mongodb.connection.ServerId;
 import com.mongodb.event.CommandStartedEvent;
-
 import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.mongo.providers.MongoSpanNameProvider;
@@ -30,8 +27,9 @@ import io.opentracing.contrib.mongo.providers.NoopSpanNameProvider;
 import io.opentracing.contrib.mongo.providers.PrefixSpanNameProvider;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
-
-import static org.junit.Assert.assertEquals;
+import org.bson.BsonDocument;
+import org.junit.Before;
+import org.junit.Test;
 
 public class TracingCommandListenerTest {
 
