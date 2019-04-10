@@ -28,52 +28,87 @@ import java.io.StringWriter;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import org.bson.BsonNull;
+import org.bson.BsonValue;
 
 /**
  * In Async Mongo driver methods of this Listener run in different threads therefore cache is used
  */
 public class TracingCommandListener implements CommandListener {
-
   public static final String COMPONENT_NAME = "java-mongo";
-  private final Tracer tracer;
 
+  private final Tracer tracer;
+  private final List<ExcludedCommand> excludedCommands;
   private final MongoSpanNameProvider mongoSpanNameProvider;
   /**
    * Cache for (request id, span) pairs
    */
   private final Map<Integer, Span> cache = new ConcurrentHashMap<>();
 
-  public TracingCommandListener(Tracer tracer) {
-    this.tracer = tracer;
-    this.mongoSpanNameProvider = new NoopSpanNameProvider();
+
+  public static class Builder {
+    private Tracer tracer;
+    private List<ExcludedCommand> excludedCommands;
+    private MongoSpanNameProvider spanNameProvider;
+
+    public Builder() {
+    }
+
+    public Builder(Tracer tracer) {
+      this.tracer = tracer;
+    }
+
+    public Builder withTracer(Tracer tracer) {
+      this.tracer = tracer;
+      return this;
+    }
+
+    public Builder withExcludedCommands(List<ExcludedCommand> excludedCommands) {
+      this.excludedCommands = excludedCommands;
+      return this;
+    }
+
+    public Builder withSpanNameProvider(MongoSpanNameProvider spanNameProvider) {
+      this.spanNameProvider = spanNameProvider;
+      return this;
+    }
+
+    public TracingCommandListener build() {
+      if (tracer == null) {
+        tracer = GlobalTracer.get();
+      }
+      if (spanNameProvider == null) {
+        spanNameProvider = new NoopSpanNameProvider();
+      }
+      if (excludedCommands == null) {
+        excludedCommands = Collections.emptyList();
+      }
+
+      return new TracingCommandListener(tracer, spanNameProvider, excludedCommands);
+    }
   }
 
-  /**
-   * GlobalTracer is used to get tracer
-   */
-  public TracingCommandListener() {
-    this(GlobalTracer.get());
-  }
-
-  public TracingCommandListener(Tracer tracer, MongoSpanNameProvider customNameProvider) {
+  public TracingCommandListener(Tracer tracer, MongoSpanNameProvider customNameProvider,
+      List<ExcludedCommand> excludedCommands) {
     this.tracer = tracer;
     this.mongoSpanNameProvider = customNameProvider;
+    this.excludedCommands = new ArrayList<>(excludedCommands);
   }
 
-  /**
-   * GlobalTracer is used to get tracer
-   */
-  public TracingCommandListener(MongoSpanNameProvider customNameProvider) {
-    this(GlobalTracer.get(), customNameProvider);
-  }
 
   @Override
   public void commandStarted(CommandStartedEvent event) {
     Span span = buildSpan(event);
-    cache.put(event.getRequestId(), span);
+    if (span != null) {
+      cache.put(event.getRequestId(), span);
+    }
   }
 
   @Override
@@ -94,6 +129,25 @@ public class TracingCommandListener implements CommandListener {
   }
 
   Span buildSpan(CommandStartedEvent event) {
+    for (ExcludedCommand excludedCommand : excludedCommands) {
+
+      boolean skip = true;
+      for (Entry<String, BsonValue> entry : excludedCommand.entrySet()) {
+        if (!event.getCommand().containsKey(entry.getKey())) {
+          skip = false;
+          break;
+        }
+        if (entry.getValue() != BsonNull.VALUE
+            && !entry.getValue().equals(event.getCommand().get(entry.getKey()))) {
+          skip = false;
+          break;
+        }
+      }
+      if (skip) {
+        return null;
+      }
+    }
+
     Tracer.SpanBuilder spanBuilder = tracer
         .buildSpan(mongoSpanNameProvider.generateName(event.getCommandName()))
         .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);

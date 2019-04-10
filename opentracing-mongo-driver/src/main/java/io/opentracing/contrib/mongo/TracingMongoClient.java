@@ -19,9 +19,7 @@ import com.mongodb.MongoClientURI;
 import com.mongodb.MongoCredential;
 import com.mongodb.MongoDriverInformation;
 import com.mongodb.ServerAddress;
-import io.opentracing.Tracer;
 import io.opentracing.contrib.mongo.common.TracingCommandListener;
-import io.opentracing.contrib.mongo.common.providers.MongoSpanNameProvider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,129 +31,115 @@ import java.util.List;
  */
 public class TracingMongoClient extends MongoClient {
 
-  public TracingMongoClient(Tracer tracer) {
-    this(tracer, new ServerAddress());
+  public TracingMongoClient(TracingCommandListener listener) {
+    this(listener, new ServerAddress());
   }
 
-  public TracingMongoClient(Tracer tracer, final String host) {
-    this(tracer, new ServerAddress(host));
+  public TracingMongoClient(TracingCommandListener listener, final String host) {
+    this(listener, new ServerAddress(host));
   }
 
-  public TracingMongoClient(Tracer tracer, final String host, final MongoClientOptions options) {
-    this(tracer, new ServerAddress(host), options);
-  }
-
-  public TracingMongoClient(Tracer tracer, final String host, final int port) {
-    this(tracer, new ServerAddress(host, port));
-  }
-
-  public TracingMongoClient(Tracer tracer, final ServerAddress addr) {
-    this(tracer, addr, new MongoClientOptions.Builder().build());
-  }
-
-  public TracingMongoClient(Tracer tracer, final ServerAddress addr,
-      final List<MongoCredential> credentialsList) {
-    this(tracer, addr, credentialsList, new MongoClientOptions.Builder().build());
-  }
-
-  public TracingMongoClient(Tracer tracer, final ServerAddress addr,
+  public TracingMongoClient(TracingCommandListener listener, final String host,
       final MongoClientOptions options) {
-    super(addr, MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-        tracer)).build());
+    this(listener, new ServerAddress(host), options);
   }
 
-  public TracingMongoClient(Tracer tracer, final ServerAddress addr,
+  public TracingMongoClient(TracingCommandListener listener, final String host, final int port) {
+    this(listener, new ServerAddress(host, port));
+  }
+
+  public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr) {
+    this(listener, addr, new MongoClientOptions.Builder().build());
+  }
+
+  public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr,
+      final List<MongoCredential> credentialsList) {
+    this(listener, addr, credentialsList, new MongoClientOptions.Builder().build());
+  }
+
+  public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr,
+      final MongoClientOptions options) {
+    super(addr, MongoClientOptions.builder(options)
+        .addCommandListener(listener).build());
+  }
+
+  public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr,
       final List<MongoCredential> credentialsList, final MongoClientOptions options) {
     super(addr, credentialsList,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer)).build());
+        MongoClientOptions.builder(options)
+            .addCommandListener(listener).build());
   }
 
-  public TracingMongoClient(Tracer tracer, final ServerAddress addr,
+  public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr,
       final MongoCredential credential, final MongoClientOptions options) {
     super(addr, credential,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer)).build());
+        MongoClientOptions.builder(options)
+            .addCommandListener(listener).build());
   }
 
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds) {
-    this(tracer, seeds, new MongoClientOptions.Builder().build());
+  public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds) {
+    this(listener, seeds, new MongoClientOptions.Builder().build());
   }
 
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+  public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds,
       final List<MongoCredential> credentialsList) {
-    this(tracer, seeds, credentialsList, new MongoClientOptions.Builder().build());
+    this(listener, seeds, credentialsList, new MongoClientOptions.Builder().build());
   }
 
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+  public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds,
       final MongoClientOptions options) {
-    super(seeds, MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-        tracer)).build());
+    super(seeds, MongoClientOptions.builder(options)
+        .addCommandListener(listener).build());
   }
 
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
-      final MongoClientOptions options, MongoSpanNameProvider spanNameProvider) {
-    super(seeds, MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-        tracer, spanNameProvider)).build());
-  }
-
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+  public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds,
       final List<MongoCredential> credentialsList, final MongoClientOptions options) {
     super(seeds, credentialsList,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer)).build());
+        MongoClientOptions.builder(options)
+            .addCommandListener(listener).build());
   }
 
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
-      final List<MongoCredential> credentialsList, final MongoClientOptions options,
-      MongoSpanNameProvider spanNameProvider) {
-    super(seeds, credentialsList,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer, spanNameProvider)).build());
-  }
-
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+  public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds,
       final MongoCredential credential, final MongoClientOptions options) {
     super(seeds, credential,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer)).build());
+        MongoClientOptions.builder(options).addCommandListener(listener).build());
   }
 
-  public TracingMongoClient(Tracer tracer, final MongoClientURI uri) {
-    this(tracer, uri, null);
+  public TracingMongoClient(TracingCommandListener listener, final MongoClientURI uri) {
+    this(listener, uri, null);
   }
 
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+  public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds,
       final MongoCredential credential, final MongoClientOptions options,
       final MongoDriverInformation mongoDriverInformation) {
     super(seeds, credential,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer)).build(), mongoDriverInformation);
+        MongoClientOptions.builder(options).addCommandListener(listener).build(),
+        mongoDriverInformation);
   }
 
-  public TracingMongoClient(Tracer tracer, final MongoClientURI uri,
+  public TracingMongoClient(TracingCommandListener listener, final MongoClientURI uri,
       final MongoDriverInformation mongoDriverInformation) {
-    this(tracer, toServerAddressList(uri.getHosts()),
+    this(listener, toServerAddressList(uri.getHosts()),
         uri.getCredentials() != null ? Collections.singletonList(uri.getCredentials())
             : Collections.<MongoCredential>emptyList(),
         uri.getOptions(),
         mongoDriverInformation);
   }
 
-  public TracingMongoClient(Tracer tracer, final ServerAddress addr,
+  public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr,
       final List<MongoCredential> credentialsList, final MongoClientOptions options,
       final MongoDriverInformation mongoDriverInformation) {
     super(addr, credentialsList,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer)).build(), mongoDriverInformation);
+        MongoClientOptions.builder(options).addCommandListener(listener).build(),
+        mongoDriverInformation);
   }
 
-  public TracingMongoClient(Tracer tracer, final List<ServerAddress> seeds,
+  public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds,
       final List<MongoCredential> credentialsList, final MongoClientOptions options,
       final MongoDriverInformation mongoDriverInformation) {
     super(seeds, credentialsList,
-        MongoClientOptions.builder(options).addCommandListener(new TracingCommandListener(
-            tracer)).build(), mongoDriverInformation);
+        MongoClientOptions.builder(options).addCommandListener(listener).build(),
+        mongoDriverInformation);
   }
 
   private static List<ServerAddress> toServerAddressList(List<String> hosts) {
