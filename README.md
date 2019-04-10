@@ -44,39 +44,67 @@ There are 2 ways to instrument `MongoClient`:
 ### Mongo Tracing Client 
 
 ```java
+// Instantiate TracingCommandListener
+TracingCommandListener listener = new TracingCommandListener.Builder(tracer).build()
+
 // Instantiate Synchronous Tracing MongoClient
-MongoClient mongoClient = new TracingMongoClient(tracer, ...);
+MongoClient mongoClient = new TracingMongoClient(listener, ...);
 
 // Instantiate Asynchronous Tracing MongoClient
-MongoClient mongoClient = new TracingAsyncMongoClient(tracer, ...);
+MongoClient mongoClient = new TracingAsyncMongoClient(listener, ...);
 
 ```
 
 ### `MongoClientSettings.Builder` with `TracingCommandListener`
 ```java
+// Instantiate TracingCommandListener
+TracingCommandListener listener = new TracingCommandListener.Builder(tracer).build()
+
 // Add TracingCommandListener to MongoClientSettings.Builder
 MongoClient mongoClient = MongoClients.create(
         MongoClientSettings.builder()
-                .addCommandListener(new TracingCommandListener(tracer))
+                .addCommandListener(listener)
                 ...
                 .build());
 
 ```
 
 ### Mongo Span Name
-By default, span names are set to the operation performed by the Mongo client. To customize the span name, provide a MongoSpanNameProvider to the client that alters the span name. If a provder is not provided, the span name will remain the default.
+By default, span names are set to the operation performed by the Mongo client. To customize the span name, provide a MongoSpanNameProvider to the client that alters the span name. If a provider is not provided, the span name will remain the default.
 
 ```java
-// Create TracingMongoClient with custom span name
+
+// Create TracingCommandListener with custom span name provider
+TracingCommandListener listener = new TracingCommandListener.Builder(tracer)\
+    .withSpanNameProvider(new PrefixSpanNameProvider("mongo."))
+    .build();
+
+// Create TracingMongoClient
 TracingMongoClient client = new TracingMongoClient(
-    tracer, 
+    listener, 
     replicaSetAddresses, 
     credentials, 
-    clientOptions, 
-    new PrefixSpanNameProvider("mongo."));
+    clientOptions 
+    );
 Document doc = new Document();
 client.getDatabase("db").getCollection("collection).insertOne(doc);
 // Span name is now set to "mongo.insert"
+```
+
+### Exclude commands from tracing
+To exclude specific Mongo commands from tracing add `ExcludedCommand` to `TracingCommandListener`:
+```java
+List<ExcludedCommand> excludedCommands = new ArrayList<>();
+ExcludedCommand excludedCommand = new ExcludedCommand();
+excludedCommand.put("getMore",  BsonNull.VALUE);
+excludedCommand.put("collection",  new BsonString("oplog.rs"));
+
+excludedCommands.add(excludedCommand);
+
+    
+TracingCommandListener listener =  new TracingCommandListener.Builder(tracer)
+    .withExcludedCommands(excludedCommands).build();    
+    
 ```
 
 ## License

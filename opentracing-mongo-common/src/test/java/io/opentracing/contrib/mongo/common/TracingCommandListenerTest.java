@@ -47,8 +47,9 @@ public class TracingCommandListenerTest {
   public void setUp() {
     operationName = new NoopSpanNameProvider();
     prefixSpanName = new PrefixSpanNameProvider("mongo.");
-    withProvider = new TracingCommandListener(tracer, prefixSpanName);
-    withoutProvider = new TracingCommandListener(tracer);
+    withProvider = new TracingCommandListener.Builder(tracer).withSpanNameProvider(prefixSpanName)
+        .build();
+    withoutProvider = new TracingCommandListener.Builder(tracer).build();
     event = new CommandStartedEvent(
         1
         , new ConnectionDescription(new ServerId(new ClusterId(), new ServerAddress()))

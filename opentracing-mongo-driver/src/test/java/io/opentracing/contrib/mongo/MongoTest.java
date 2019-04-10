@@ -21,6 +21,7 @@ import static org.junit.Assert.assertNull;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodStarter;
@@ -29,12 +30,16 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import io.opentracing.contrib.mongo.common.ExcludedCommand;
 import io.opentracing.contrib.mongo.common.TracingCommandListener;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import org.bson.BsonNull;
+import org.bson.BsonString;
 import org.bson.Document;
 import org.junit.After;
 import org.junit.Before;
@@ -70,11 +75,69 @@ public class MongoTest {
     }
   }
 
+  @Test
+  public void testExcludeInsert() throws Exception {
+    List<ExcludedCommand> excludedCommands = new ArrayList<>();
+    ExcludedCommand excludedCommand = new ExcludedCommand();
+    excludedCommand.put("insert", new BsonString("testCol"));
+    excludedCommands.add(excludedCommand);
+    MongoClient mongoClient = new TracingMongoClient(
+        new TracingCommandListener.Builder(mockTracer)
+            .withExcludedCommands(excludedCommands).build(),
+        new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort()));
+
+    MongoDatabase db = mongoClient.getDatabase("test");
+    MongoCollection<Document> col = db.getCollection("testCol");
+    col.insertOne(new Document("testDoc", new Date()));
+    mongoClient.close();
+
+    List<MockSpan> finished = mockTracer.finishedSpans();
+    assertEquals(0, finished.size());
+
+    assertNull(mockTracer.activeSpan());
+  }
+
+  @Test
+  public void testExcludeAll() throws Exception {
+    List<ExcludedCommand> excludedCommands = new ArrayList<>();
+
+    ExcludedCommand excludedCommand = new ExcludedCommand();
+    excludedCommand.put("getMore", BsonNull.VALUE);
+    excludedCommand.put("collection", new BsonString("testCol"));
+    excludedCommands.add(new ExcludedCommand("insert", new BsonString("testCol")));
+    excludedCommands.add(new ExcludedCommand("find", BsonNull.VALUE));
+    excludedCommands.add(excludedCommand);
+
+    MongoClient mongoClient = new TracingMongoClient(
+        new TracingCommandListener.Builder(mockTracer)
+            .withExcludedCommands(excludedCommands).build(),
+        new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort()));
+
+    MongoDatabase db = mongoClient.getDatabase("test");
+    MongoCollection<Document> col = db.getCollection("testCol");
+
+    for (int i = 0; i < 100_000; i++) {
+      col.insertOne(new Document("testDoc", new Date()));
+    }
+    List<String> jsons = new ArrayList<>();
+    final MongoCursor<Document> cursor = col.find().iterator();
+    while (cursor.hasNext()) {
+      jsons.add(cursor.next().toJson());
+    }
+    assertEquals(100_000, jsons.size());
+
+    mongoClient.close();
+
+    List<MockSpan> finished = mockTracer.finishedSpans();
+    assertEquals(0, finished.size());
+
+    assertNull(mockTracer.activeSpan());
+  }
 
   @Test
   public void sync() throws Exception {
     MongoClient mongoClient = new TracingMongoClient(
-        mockTracer,
+        new TracingCommandListener.Builder(mockTracer).build(),
         new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort()));
 
     MongoDatabase db = mongoClient.getDatabase("test");

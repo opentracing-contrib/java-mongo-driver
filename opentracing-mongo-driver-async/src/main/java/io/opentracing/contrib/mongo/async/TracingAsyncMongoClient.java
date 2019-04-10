@@ -46,7 +46,8 @@ public class TracingAsyncMongoClient implements MongoClient {
 
   public TracingAsyncMongoClient(final Tracer tracer, final MongoClientSettings settings,
       final MongoDriverInformation mongoDriverInformation) {
-    TracingCommandListener tracingCommandListener = new TracingCommandListener(tracer);
+    TracingCommandListener tracingCommandListener = new TracingCommandListener.Builder(tracer)
+        .build();
     this.mongoClient = MongoClients.create(MongoClientSettings.builder(settings)
             .addCommandListener(tracingCommandListener)
             .build(),
