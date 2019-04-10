@@ -5,11 +5,24 @@ OpenTracing instrumentation for Mongo Driver.
 
 ## Installation
 
+### Mongo Driver
+
 pom.xml
 ```xml
 <dependency>
     <groupId>io.opentracing.contrib</groupId>
     <artifactId>opentracing-mongo-driver</artifactId>
+    <version>VERSION</version>
+</dependency>
+```
+
+### Mongo Driver Async
+
+pom.xml
+```xml
+<dependency>
+    <groupId>io.opentracing.contrib</groupId>
+    <artifactId>opentracing-mongo-driver-async</artifactId>
     <version>VERSION</version>
 </dependency>
 ```

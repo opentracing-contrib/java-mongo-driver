@@ -14,13 +14,22 @@
     the License.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.opentracing.contrib</groupId>
-  <artifactId>opentracing-mongo-driver</artifactId>
+  <artifactId>opentracing-mongo-parent</artifactId>
+  <packaging>pom</packaging>
   <version>0.1.1-SNAPSHOT</version>
 
-  <name>${project.groupId}:${project.artifactId}</name>
+  <modules>
+    <module>opentracing-mongo-driver</module>
+    <module>opentracing-mongo-common</module>
+    <module>opentracing-mongo-driver-async</module>
+  </modules>
+
+  <name>OpenTracing Instrumentation for Mongo Driver</name>
   <description>OpenTracing Instrumentation for Mongo Driver</description>
   <url>https://github.com/opentracing-contrib/java-mongo-driver</url>
   <inceptionYear>2017-2019</inceptionYear>
@@ -66,7 +75,6 @@
   </properties>
 
   <dependencies>
-
     <dependency>
       <groupId>io.opentracing</groupId>
       <artifactId>opentracing-util</artifactId>
@@ -74,22 +82,10 @@
     </dependency>
 
     <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongo-java-driver</artifactId>
-      <version>${mongo.driver.version}</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>2.25.1</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-async</artifactId>
-      <version>${mongo.driver.version}</version>
     </dependency>
 
     <dependency>
