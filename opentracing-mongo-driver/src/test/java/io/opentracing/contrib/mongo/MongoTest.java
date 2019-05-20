@@ -14,15 +14,14 @@
 package io.opentracing.contrib.mongo;
 
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.event.CommandFailedEvent;
+import com.mongodb.event.CommandStartedEvent;
+import com.mongodb.event.CommandSucceededEvent;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
@@ -30,14 +29,13 @@ import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
 import de.flapdoodle.embed.mongo.distribution.Version;
 import de.flapdoodle.embed.process.runtime.Network;
+import io.opentracing.Span;
 import io.opentracing.contrib.mongo.common.ExcludedCommand;
+import io.opentracing.contrib.mongo.common.SpanDecorator;
 import io.opentracing.contrib.mongo.common.TracingCommandListener;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import org.bson.BsonNull;
 import org.bson.BsonString;
 import org.bson.Document;
@@ -45,9 +43,38 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
 public class MongoTest {
 
+  private static final String FOO = "FOO";
+  private static final String BAR = "BAR";
+  private static final String BAZ = "BAZ";
   private static final MockTracer mockTracer = new MockTracer();
+  private static final List<SpanDecorator> customDecorator = Collections.<SpanDecorator>singletonList(new SpanDecorator() {
+    @Override
+    public void commandStarted(CommandStartedEvent event, Span span) {
+      span.setTag(FOO, FOO);
+    }
+
+    @Override
+    public void commandSucceeded(CommandSucceededEvent event, Span span) {
+      span.setTag(BAR, BAR);
+    }
+
+    @Override
+    public void commandFailed(CommandFailedEvent event, Span span) {
+      span.setTag(BAZ, BAZ);
+    }
+  });
   private MongodExecutable mongodExecutable;
   private IMongodConfig mongodConfig;
 
@@ -130,6 +157,58 @@ public class MongoTest {
 
     List<MockSpan> finished = mockTracer.finishedSpans();
     assertEquals(0, finished.size());
+
+    assertNull(mockTracer.activeSpan());
+  }
+
+  @Test
+  public void testSuccessDecorator() throws Exception {
+    MongoClient mongoClient = new TracingMongoClient(
+        new TracingCommandListener.Builder(mockTracer)
+            .withSpanDecorators(customDecorator).build(),
+        new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort()));
+
+    MongoDatabase db = mongoClient.getDatabase("test");
+    MongoCollection<Document> col = db.getCollection("testCol");
+
+    col.insertOne(new Document("testDoc", new Date()));
+
+    mongoClient.close();
+
+    List<MockSpan> finished = mockTracer.finishedSpans();
+    assertEquals(1, finished.size());
+    MockSpan span = finished.iterator().next();
+
+    assertEquals(FOO, span.tags().get(FOO));
+    assertEquals(BAR, span.tags().get(BAR));
+    assertNull(span.tags().get(BAZ));
+
+    assertNull(mockTracer.activeSpan());
+  }
+
+  @Test
+  public void testFailureDecorator() throws Exception {
+    MongoClient mongoClient = new TracingMongoClient(
+        new TracingCommandListener.Builder(mockTracer)
+            .withSpanDecorators(customDecorator).build(),
+        new ServerAddress(mongodConfig.net().getServerAddress(), mongodConfig.net().getPort()));
+
+    MongoDatabase db = mongoClient.getDatabase("test");
+
+    try {
+      db.runCommand(new Document()); // this is not a valid command
+      fail();
+    } catch (RuntimeException ignored) {}
+
+    mongoClient.close();
+
+    List<MockSpan> finished = mockTracer.finishedSpans();
+    assertEquals(1, finished.size());
+    MockSpan span = finished.iterator().next();
+
+    assertEquals(FOO, span.tags().get(FOO));
+    assertNull(span.tags().get(BAR));
+    assertEquals(BAZ ,span.tags().get(BAZ));
 
     assertNull(mockTracer.activeSpan());
   }
