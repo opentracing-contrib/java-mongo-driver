@@ -169,7 +169,7 @@ public class TracingCommandListener implements CommandListener {
     }
 
     Tracer.SpanBuilder spanBuilder = tracer
-        .buildSpan(mongoSpanNameProvider.generateName(event.getCommandName()))
+        .buildSpan(mongoSpanNameProvider.generateName(event))
         .withTag(Tags.SPAN_KIND.getKey(), Tags.SPAN_KIND_CLIENT);
 
     Span span = spanBuilder.start();

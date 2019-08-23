@@ -14,19 +14,17 @@
 package io.opentracing.contrib.mongo.common.providers;
 
 import com.mongodb.event.CommandStartedEvent;
+import org.bson.BsonDocument;
 
-public class PrefixSpanNameProvider implements MongoSpanNameProvider {
-
-  private final String prefix;
-
-  public PrefixSpanNameProvider(String prefix) {
-    this.prefix = prefix;
-  }
+public class OperationCollectionSpanNameProvider extends NoopSpanNameProvider {
 
   @Override
   public String generateName(CommandStartedEvent event) {
-    final String operationName = event != null && event.getCommandName() != null ?
-        event.getCommandName() : NO_OPERATION;
-    return ((prefix == null) ? "" : prefix) + operationName;
+    if (event == null || event.getCommand() == null) {
+      return NO_OPERATION;
+    }
+    final BsonDocument cmd = event.getCommand();
+    String col = cmd.getString(cmd.getFirstKey()).getValue();
+    return super.generateName(event) + " " + col;
   }
 }

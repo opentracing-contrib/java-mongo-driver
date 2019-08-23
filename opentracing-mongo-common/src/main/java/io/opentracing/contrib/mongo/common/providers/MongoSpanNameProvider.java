@@ -13,9 +13,11 @@
  */
 package io.opentracing.contrib.mongo.common.providers;
 
+import com.mongodb.event.CommandStartedEvent;
+
 public interface MongoSpanNameProvider {
 
   String NO_OPERATION = "unknown";
 
-  String generateName(final String operationName);
+  String generateName(CommandStartedEvent event);
 }
