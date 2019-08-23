@@ -24,9 +24,9 @@ import org.bson.BsonDocument;
 import org.bson.BsonString;
 import org.junit.Test;
 
-public class PrefixSpanNameProviderTest {
+public class OperationCollectionSpanNameProviderTest {
 
-  private final MongoSpanNameProvider provider = new PrefixSpanNameProvider("mongo.");
+  private final MongoSpanNameProvider provider = new OperationCollectionSpanNameProvider();
 
   private final CommandStartedEvent TEST_EVENT = new CommandStartedEvent(1,
       new ConnectionDescription(new ServerId(new ClusterId(), new ServerAddress())),
@@ -35,16 +35,11 @@ public class PrefixSpanNameProviderTest {
 
   @Test
   public void testOperationNameExists() {
-    assertEquals("mongo.insert", provider.generateName(TEST_EVENT));
+    assertEquals("insert collection-name", provider.generateName(TEST_EVENT));
   }
 
   @Test
   public void testNullOperationName() {
-    assertEquals("mongo.unknown", provider.generateName(null));
-  }
-
-  @Test
-  public void testNullPrefixName() {
-    assertEquals("insert", new PrefixSpanNameProvider(null).generateName(TEST_EVENT));
+    assertEquals("unknown", provider.generateName(null));
   }
 }

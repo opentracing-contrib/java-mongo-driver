@@ -15,15 +15,27 @@ package io.opentracing.contrib.mongo.common.providers;
 
 import static org.junit.Assert.assertEquals;
 
+import com.mongodb.ServerAddress;
+import com.mongodb.connection.ClusterId;
+import com.mongodb.connection.ConnectionDescription;
+import com.mongodb.connection.ServerId;
+import com.mongodb.event.CommandStartedEvent;
+import org.bson.BsonDocument;
+import org.bson.BsonString;
 import org.junit.Test;
 
 public class NoopSpanNameProviderTest {
 
   private final MongoSpanNameProvider provider = new NoopSpanNameProvider();
 
+  private final CommandStartedEvent TEST_EVENT = new CommandStartedEvent(1,
+      new ConnectionDescription(new ServerId(new ClusterId(), new ServerAddress())),
+      "database-name", "insert",
+      new BsonDocument().append("insert", new BsonString("collection-name")));
+
   @Test
   public void testOperationNameExists() {
-    assertEquals("insert", provider.generateName("insert"));
+    assertEquals("insert", provider.generateName(TEST_EVENT));
   }
 
   @Test

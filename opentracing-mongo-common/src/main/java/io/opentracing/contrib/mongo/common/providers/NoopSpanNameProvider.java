@@ -13,10 +13,14 @@
  */
 package io.opentracing.contrib.mongo.common.providers;
 
+import com.mongodb.event.CommandEvent;
+import com.mongodb.event.CommandStartedEvent;
+
 public class NoopSpanNameProvider implements MongoSpanNameProvider {
 
   @Override
-  public String generateName(String operationName) {
-    return ((operationName == null) ? NO_OPERATION : operationName);
+  public String generateName(CommandStartedEvent event) {
+    return event != null && event.getCommandName() != null ?
+        event.getCommandName() : NO_OPERATION;
   }
 }

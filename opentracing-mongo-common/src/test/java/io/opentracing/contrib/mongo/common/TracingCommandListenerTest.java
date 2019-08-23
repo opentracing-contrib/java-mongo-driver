@@ -90,14 +90,14 @@ public class TracingCommandListenerTest {
   public void testDefault() {
     span = withoutProvider.buildSpan(event);
     MockSpan mockSpan = (MockSpan) span;
-    assertEquals(mockSpan.operationName(), operationName.generateName(event.getCommandName()));
+    assertEquals(mockSpan.operationName(), operationName.generateName(event));
   }
 
   @Test
   public void testPrefix() {
     span = withProvider.buildSpan(event);
     MockSpan mockSpan = (MockSpan) span;
-    assertEquals(mockSpan.operationName(), prefixSpanName.generateName(event.getCommandName()));
+    assertEquals(mockSpan.operationName(), prefixSpanName.generateName(event));
   }
 
   @Test
