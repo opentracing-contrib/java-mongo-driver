@@ -13,6 +13,8 @@
  */
 package io.opentracing.contrib.mongo.common;
 
+import static org.junit.Assert.assertEquals;
+
 import com.mongodb.ServerAddress;
 import com.mongodb.connection.ClusterId;
 import com.mongodb.connection.ConnectionDescription;
@@ -28,14 +30,11 @@ import io.opentracing.contrib.mongo.common.providers.PrefixSpanNameProvider;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
+import java.util.ArrayList;
+import java.util.List;
 import org.bson.BsonDocument;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
 
 public class TracingCommandListenerTest {
 
@@ -69,10 +68,12 @@ public class TracingCommandListenerTest {
       }
 
       @Override
-      public void commandSucceeded(CommandSucceededEvent event, Span span) { }
+      public void commandSucceeded(CommandSucceededEvent event, Span span) {
+      }
 
       @Override
-      public void commandFailed(CommandFailedEvent event, Span span) { }
+      public void commandFailed(CommandFailedEvent event, Span span) {
+      }
     });
     withCustomDecorators = new TracingCommandListener.Builder(tracer)
         .withSpanDecorators(decorators)
@@ -104,7 +105,8 @@ public class TracingCommandListenerTest {
   public void testDefaultDecorator() {
     span = withoutProvider.buildSpan(event);
     MockSpan mockSpan = (MockSpan) span;
-    assertEquals(((mockSpan).tags().get(Tags.COMPONENT.getKey())), TracingCommandListener.COMPONENT_NAME);
+    assertEquals(((mockSpan).tags().get(Tags.COMPONENT.getKey())),
+        TracingCommandListener.COMPONENT_NAME);
   }
 
   @Test

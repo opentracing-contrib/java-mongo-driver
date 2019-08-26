@@ -23,15 +23,14 @@ import io.opentracing.contrib.mongo.common.providers.MongoSpanNameProvider;
 import io.opentracing.contrib.mongo.common.providers.NoopSpanNameProvider;
 import io.opentracing.tag.Tags;
 import io.opentracing.util.GlobalTracer;
-import org.bson.BsonNull;
-import org.bson.BsonValue;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
+import org.bson.BsonNull;
+import org.bson.BsonValue;
 
 /**
  * In Async Mongo driver methods of this Listener run in different threads therefore cache is used
@@ -73,8 +72,8 @@ public class TracingCommandListener implements CommandListener {
     }
 
     /**
-     * Specify decorators for use by this listener. By default,
-     * {@link SpanDecorator#DEFAULT}. Decorators are applied in list iteration order.
+     * Specify decorators for use by this listener. By default, {@link SpanDecorator#DEFAULT}.
+     * Decorators are applied in list iteration order.
      */
     public Builder withSpanDecorators(List<SpanDecorator> decorators) {
       this.decorators = new ArrayList<>(decorators);
@@ -105,12 +104,13 @@ public class TracingCommandListener implements CommandListener {
   }
 
   public TracingCommandListener(Tracer tracer, MongoSpanNameProvider customNameProvider,
-                                List<ExcludedCommand> excludedCommands) {
-    this(tracer, customNameProvider, excludedCommands, Collections.singletonList(SpanDecorator.DEFAULT));
+      List<ExcludedCommand> excludedCommands) {
+    this(tracer, customNameProvider, excludedCommands,
+        Collections.singletonList(SpanDecorator.DEFAULT));
   }
 
   public TracingCommandListener(Tracer tracer, MongoSpanNameProvider customNameProvider,
-                                List<ExcludedCommand> excludedCommands, List<SpanDecorator> decorators) {
+      List<ExcludedCommand> excludedCommands, List<SpanDecorator> decorators) {
     this.tracer = tracer;
     this.mongoSpanNameProvider = customNameProvider;
     this.excludedCommands = new ArrayList<>(excludedCommands);

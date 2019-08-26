@@ -13,7 +13,6 @@
  */
 package io.opentracing.contrib.mongo.common.providers;
 
-import com.mongodb.event.CommandEvent;
 import com.mongodb.event.CommandStartedEvent;
 
 public class NoopSpanNameProvider implements MongoSpanNameProvider {

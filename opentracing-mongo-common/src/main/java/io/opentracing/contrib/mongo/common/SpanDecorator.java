@@ -13,12 +13,13 @@
  */
 package io.opentracing.contrib.mongo.common;
 
+import static io.opentracing.contrib.mongo.common.TracingCommandListener.COMPONENT_NAME;
+
 import com.mongodb.event.CommandFailedEvent;
 import com.mongodb.event.CommandStartedEvent;
 import com.mongodb.event.CommandSucceededEvent;
 import io.opentracing.Span;
 import io.opentracing.tag.Tags;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.Inet4Address;
@@ -26,8 +27,6 @@ import java.net.InetAddress;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-
-import static io.opentracing.contrib.mongo.common.TracingCommandListener.COMPONENT_NAME;
 
 public interface SpanDecorator {
 
@@ -66,7 +65,8 @@ final class DefaultSpanDecorator implements SpanDecorator {
   }
 
   @Override
-  public void commandSucceeded(CommandSucceededEvent event, Span span) { }
+  public void commandSucceeded(CommandSucceededEvent event, Span span) {
+  }
 
   @Override
   public void commandFailed(CommandFailedEvent event, Span span) {
