@@ -129,16 +129,6 @@
           <tagNameFormat>@{project.version}</tagNameFormat>
         </configuration>
       </plugin>
-<!--      <plugin>-->
-<!--        <groupId>io.zipkin.centralsync-maven-plugin</groupId>-->
-<!--        <artifactId>centralsync-maven-plugin</artifactId>-->
-<!--        <version>0.1.1</version>-->
-<!--        <configuration>-->
-<!--          <subject>opentracing</subject>-->
-<!--          <repo>maven</repo>-->
-<!--          <packageName>opentracing-mongo-driver</packageName>-->
-<!--        </configuration>-->
-<!--      </plugin>-->
       <plugin>
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
