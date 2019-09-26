@@ -23,7 +23,7 @@ install:
   - ./mvnw install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
 
 script:
-  - ./travis/publish.sh
+  - travis_wait 30 ./travis/publish.sh
 
 branches:
   except:
