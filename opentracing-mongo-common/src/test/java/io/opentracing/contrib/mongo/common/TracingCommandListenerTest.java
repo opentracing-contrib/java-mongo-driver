@@ -30,95 +30,93 @@ import io.opentracing.contrib.mongo.common.providers.PrefixSpanNameProvider;
 import io.opentracing.mock.MockSpan;
 import io.opentracing.mock.MockTracer;
 import io.opentracing.tag.Tags;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.bson.BsonDocument;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TracingCommandListenerTest {
 
-    private static final String FOO = "FOO";
+  private static final String FOO = "FOO";
 
-    private Tracer tracer = new MockTracer();
+  private Tracer tracer = new MockTracer();
 
-    private MongoSpanNameProvider prefixSpanName;
+  private MongoSpanNameProvider prefixSpanName;
 
-    private MongoSpanNameProvider operationName;
-    private TracingCommandListener withProvider;
-    private TracingCommandListener withoutProvider;
-    private TracingCommandListener withCustomDecorators;
-    private CommandStartedEvent event;
-    private Span span;
+  private MongoSpanNameProvider operationName;
+  private TracingCommandListener withProvider;
+  private TracingCommandListener withoutProvider;
+  private TracingCommandListener withCustomDecorators;
+  private CommandStartedEvent event;
+  private Span span;
 
-    @Before
-    public void setUp() {
-        operationName = new NoopSpanNameProvider();
-        prefixSpanName = new PrefixSpanNameProvider("mongo.");
-        withProvider = new TracingCommandListener.Builder(tracer).withSpanNameProvider(prefixSpanName)
-                .build();
-        withoutProvider = new TracingCommandListener.Builder(tracer).build();
-        List<SpanDecorator> decorators = new ArrayList<>();
-        decorators.add(SpanDecorator.DEFAULT);
-        decorators.add(new SpanDecorator() {
-            @Override
-            public void commandStarted(CommandStartedEvent event, Span span) {
-                Tags.COMPONENT.set(span, FOO);
-                span.setTag(FOO, FOO);
-            }
+  @Before
+  public void setUp() {
+    operationName = new NoopSpanNameProvider();
+    prefixSpanName = new PrefixSpanNameProvider("mongo.");
+    withProvider = new TracingCommandListener.Builder(tracer).withSpanNameProvider(prefixSpanName)
+        .build();
+    withoutProvider = new TracingCommandListener.Builder(tracer).build();
+    List<SpanDecorator> decorators = new ArrayList<>();
+    decorators.add(SpanDecorator.DEFAULT);
+    decorators.add(new SpanDecorator() {
+      @Override
+      public void commandStarted(CommandStartedEvent event, Span span) {
+        Tags.COMPONENT.set(span, FOO);
+        span.setTag(FOO, FOO);
+      }
 
-            @Override
-            public void commandSucceeded(CommandSucceededEvent event, Span span) {
-            }
+      @Override
+      public void commandSucceeded(CommandSucceededEvent event, Span span) {
+      }
 
-            @Override
-            public void commandFailed(CommandFailedEvent event, Span span) {
-            }
-        });
-        withCustomDecorators = new TracingCommandListener.Builder(tracer)
-                .withSpanDecorators(decorators)
-                .build();
-        event = new CommandStartedEvent(
-                1
-                , new ConnectionDescription(new ServerId(new ClusterId(), new ServerAddress()))
-                , "databaseName"
-                , "commandName"
-                , new BsonDocument()
-        );
-    }
+      @Override
+      public void commandFailed(CommandFailedEvent event, Span span) {
+      }
+    });
+    withCustomDecorators = new TracingCommandListener.Builder(tracer)
+        .withSpanDecorators(decorators)
+        .build();
+    event = new CommandStartedEvent(
+        1
+        , new ConnectionDescription(new ServerId(new ClusterId(), new ServerAddress()))
+        , "databaseName"
+        , "commandName"
+        , new BsonDocument()
+    );
+  }
 
-    @Test
-    public void testDefault() {
-        span = withoutProvider.buildSpan(event);
-        MockSpan mockSpan = (MockSpan) span;
-        assertEquals(mockSpan.operationName(), operationName.generateName(event));
-    }
+  @Test
+  public void testDefault() {
+    span = withoutProvider.buildSpan(event);
+    MockSpan mockSpan = (MockSpan) span;
+    assertEquals(mockSpan.operationName(), operationName.generateName(event));
+  }
 
-    @Test
-    public void testPrefix() {
-        span = withProvider.buildSpan(event);
-        MockSpan mockSpan = (MockSpan) span;
-        assertEquals(mockSpan.operationName(), prefixSpanName.generateName(event));
-    }
+  @Test
+  public void testPrefix() {
+    span = withProvider.buildSpan(event);
+    MockSpan mockSpan = (MockSpan) span;
+    assertEquals(mockSpan.operationName(), prefixSpanName.generateName(event));
+  }
 
-    @Test
-    public void testDefaultDecorator() {
-        span = withoutProvider.buildSpan(event);
-        MockSpan mockSpan = (MockSpan) span;
-        assertEquals(((mockSpan).tags().get(Tags.COMPONENT.getKey())),
-                TracingCommandListener.COMPONENT_NAME);
-    }
+  @Test
+  public void testDefaultDecorator() {
+    span = withoutProvider.buildSpan(event);
+    MockSpan mockSpan = (MockSpan) span;
+    assertEquals(((mockSpan).tags().get(Tags.COMPONENT.getKey())),
+        TracingCommandListener.COMPONENT_NAME);
+  }
 
-    @Test
-    public void testCustomDecorator() {
-        span = withCustomDecorators.buildSpan(event);
-        MockSpan mockSpan = (MockSpan) span;
-        // decorators are applied in order
-        assertEquals(((mockSpan).tags().get(Tags.COMPONENT.getKey())), FOO);
-        assertEquals(((mockSpan).tags().get(FOO)), FOO);
-    }
+  @Test
+  public void testCustomDecorator() {
+    span = withCustomDecorators.buildSpan(event);
+    MockSpan mockSpan = (MockSpan) span;
+    // decorators are applied in order
+    assertEquals(((mockSpan).tags().get(Tags.COMPONENT.getKey())), FOO);
+    assertEquals(((mockSpan).tags().get(FOO)), FOO);
+  }
 
     @Test
     public void testParentSpanIsSet() {
