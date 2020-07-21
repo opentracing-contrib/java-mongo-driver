@@ -15,6 +15,7 @@ package io.opentracing.contrib.mongo.common.providers;
 
 import com.mongodb.event.CommandStartedEvent;
 import org.bson.BsonDocument;
+import org.bson.BsonValue;
 
 public class OperationCollectionSpanNameProvider extends NoopSpanNameProvider {
 
@@ -24,7 +25,12 @@ public class OperationCollectionSpanNameProvider extends NoopSpanNameProvider {
       return NO_OPERATION;
     }
     final BsonDocument cmd = event.getCommand();
-    String col = cmd.getString(cmd.getFirstKey()).getValue();
-    return super.generateName(event) + " " + col;
+    BsonValue firstKey = cmd.get(cmd.getFirstKey());
+    if (firstKey.isString()) {
+      String collectionName = firstKey.asString().getValue();
+      return super.generateName(event) + " " + collectionName;
+    } else {
+      return super.generateName(event);
+    }
   }
 }
