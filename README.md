@@ -27,6 +27,17 @@ pom.xml
 </dependency>
 ```
 
+### Mongo Driver Reactive Streams
+
+pom.xml
+```xml
+<dependency>
+    <groupId>io.opentracing.contrib</groupId>
+    <artifactId>opentracing-mongo-driver-reactivestreams</artifactId>
+    <version>VERSION</version>
+</dependency>
+```
+
 ## Usage
 
 ```java
