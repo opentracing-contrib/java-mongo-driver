@@ -31,11 +31,23 @@
       <artifactId>opentracing-mongo-common</artifactId>
       <version>0.1.6-SNAPSHOT</version>
     </dependency>
+         <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongodb-driver-core</artifactId>
+        <version>${mongo.driver.version}</version>
+        <scope>provided</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongodb-driver-legacy</artifactId>
+        <version>${mongo.driver.version}</version>
+        <scope>provided</scope>
+      </dependency>
     <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-reactivestreams</artifactId>
-      <version>${mongo.driver.reactivestreams.version}</version>
-      <scope>provided</scope>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongodb-driver-reactivestreams</artifactId>
+        <version>${mongo.driver.version}</version>
+        <scope>provided</scope>
     </dependency>
   </dependencies>
 

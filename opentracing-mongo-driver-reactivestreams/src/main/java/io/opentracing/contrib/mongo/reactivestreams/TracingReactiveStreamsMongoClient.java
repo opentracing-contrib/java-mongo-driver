@@ -14,131 +14,121 @@
 package io.opentracing.contrib.mongo.reactivestreams;
 
 
+import java.util.List;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.reactivestreams.Publisher;
 import com.mongodb.ClientSessionOptions;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoDriverInformation;
 import com.mongodb.reactivestreams.client.*;
 import io.opentracing.Tracer;
 import io.opentracing.contrib.mongo.common.TracingCommandListener;
-import org.bson.Document;
-import org.bson.conversions.Bson;
-import org.reactivestreams.Publisher;
-
-import java.util.List;
 
 /**
  * Tracing decorator for {@link MongoClient}
  */
 public class TracingReactiveStreamsMongoClient implements MongoClient {
 
-  private final MongoClient mongoClient;
+    private final MongoClient mongoClient;
 
-  public TracingReactiveStreamsMongoClient(final Tracer tracer, final MongoClientSettings settings) {
-    this(tracer, settings, null);
-  }
+    public TracingReactiveStreamsMongoClient(final Tracer tracer, final MongoClientSettings settings) {
+        this(tracer, settings, null);
+    }
 
-  public TracingReactiveStreamsMongoClient(final Tracer tracer, final MongoClientSettings settings,
-      final MongoDriverInformation mongoDriverInformation) {
-    TracingCommandListener tracingCommandListener = new TracingCommandListener.Builder(tracer)
-        .build();
-    this.mongoClient = MongoClients.create(MongoClientSettings.builder(settings)
-            .addCommandListener(tracingCommandListener)
-            .build(),
-        mongoDriverInformation);
-  }
+    public TracingReactiveStreamsMongoClient(final Tracer tracer, final MongoClientSettings settings, final MongoDriverInformation mongoDriverInformation) {
+        TracingCommandListener tracingCommandListener = new TracingCommandListener.Builder(tracer).build();
+        this.mongoClient = MongoClients.create(MongoClientSettings.builder(settings).addCommandListener(tracingCommandListener).build(), mongoDriverInformation);
+    }
 
-  @Override
-  public MongoDatabase getDatabase(String name) {
-    return mongoClient.getDatabase(name);
-  }
+    @Override
+    public MongoDatabase getDatabase(String name) {
+        return mongoClient.getDatabase(name);
+    }
 
-  @Override
-  public void close() {
-    mongoClient.close();
-  }
+    @Override
+    public void close() {
+        mongoClient.close();
+    }
 
-  @Override
-  public com.mongodb.async.client.MongoClientSettings getSettings() {
-    return mongoClient.getSettings();
-  }
+    @Override
+    public Publisher<String> listDatabaseNames() {
+        return mongoClient.listDatabaseNames();
+    }
 
-  @Override
-  public Publisher<String> listDatabaseNames() {
-    return mongoClient.listDatabaseNames();
-  }
+    @Override
+    public Publisher<String> listDatabaseNames(ClientSession clientSession) {
+        return mongoClient.listDatabaseNames(clientSession);
+    }
 
-  @Override
-  public Publisher<String> listDatabaseNames(ClientSession clientSession) {
-    return mongoClient.listDatabaseNames(clientSession);
-  }
+    @Override
+    public ListDatabasesPublisher<Document> listDatabases() {
+        return mongoClient.listDatabases();
+    }
 
-  @Override
-  public ListDatabasesPublisher<Document> listDatabases() {
-    return mongoClient.listDatabases();
-  }
+    @Override
+    public <TResult> ListDatabasesPublisher<TResult> listDatabases(Class<TResult> aClass) {
+        return mongoClient.listDatabases(aClass);
+    }
 
-  @Override
-  public <TResult> ListDatabasesPublisher<TResult> listDatabases(Class<TResult> aClass) {
-    return mongoClient.listDatabases(aClass);
-  }
+    @Override
+    public ListDatabasesPublisher<Document> listDatabases(ClientSession clientSession) {
+        return mongoClient.listDatabases(clientSession);
+    }
 
-  @Override
-  public ListDatabasesPublisher<Document> listDatabases(ClientSession clientSession) {
-    return mongoClient.listDatabases(clientSession);
-  }
+    @Override
+    public <TResult> ListDatabasesPublisher<TResult> listDatabases(ClientSession clientSession, Class<TResult> aClass) {
+        return mongoClient.listDatabases(clientSession, aClass);
+    }
 
-  @Override
-  public <TResult> ListDatabasesPublisher<TResult> listDatabases(ClientSession clientSession, Class<TResult> aClass) {
-    return mongoClient.listDatabases(clientSession, aClass);
-  }
+    @Override
+    public ChangeStreamPublisher<Document> watch() {
+        return mongoClient.watch();
+    }
 
-  @Override
-  public ChangeStreamPublisher<Document> watch() {
-    return mongoClient.watch();
-  }
+    @Override
+    public <TResult> ChangeStreamPublisher<TResult> watch(Class<TResult> aClass) {
+        return mongoClient.watch(aClass);
+    }
 
-  @Override
-  public <TResult> ChangeStreamPublisher<TResult> watch(Class<TResult> aClass) {
-    return mongoClient.watch(aClass);
-  }
+    @Override
+    public ChangeStreamPublisher<Document> watch(List<? extends Bson> list) {
+        return mongoClient.watch(list);
+    }
 
-  @Override
-  public ChangeStreamPublisher<Document> watch(List<? extends Bson> list) {
-    return mongoClient.watch(list);
-  }
+    @Override
+    public <TResult> ChangeStreamPublisher<TResult> watch(List<? extends Bson> list, Class<TResult> aClass) {
+        return mongoClient.watch(list, aClass);
+    }
 
-  @Override
-  public <TResult> ChangeStreamPublisher<TResult> watch(List<? extends Bson> list, Class<TResult> aClass) {
-    return mongoClient.watch(list, aClass);
-  }
+    @Override
+    public ChangeStreamPublisher<Document> watch(ClientSession clientSession) {
+        return mongoClient.watch(clientSession);
+    }
 
-  @Override
-  public ChangeStreamPublisher<Document> watch(ClientSession clientSession) {
-    return mongoClient.watch(clientSession);
-  }
+    @Override
+    public <TResult> ChangeStreamPublisher<TResult> watch(ClientSession clientSession, Class<TResult> aClass) {
+        return mongoClient.watch(clientSession, aClass);
+    }
 
-  @Override
-  public <TResult> ChangeStreamPublisher<TResult> watch(ClientSession clientSession, Class<TResult> aClass) {
-    return mongoClient.watch(clientSession, aClass);
-  }
+    @Override
+    public ChangeStreamPublisher<Document> watch(ClientSession clientSession, List<? extends Bson> list) {
+        return mongoClient.watch(clientSession, list);
+    }
 
-  @Override
-  public ChangeStreamPublisher<Document> watch(ClientSession clientSession, List<? extends Bson> list) {
-    return mongoClient.watch(clientSession, list);
-  }
+    @Override
+    public <TResult> ChangeStreamPublisher<TResult> watch(ClientSession clientSession, List<? extends Bson> list, Class<TResult> aClass) {
+        return mongoClient.watch(clientSession, list, aClass);
+    }
 
-  @Override
-  public <TResult> ChangeStreamPublisher<TResult> watch(ClientSession clientSession, List<? extends Bson> list, Class<TResult> aClass) {
-    return mongoClient.watch(clientSession, list, aClass);
-  }
+    @Override
+    public Publisher<ClientSession> startSession() {
+        return mongoClient.startSession();
+    }
 
-  @Override
-  public Publisher<ClientSession> startSession() {
-    return mongoClient.startSession();
-  }
+    @Override
+    public Publisher<ClientSession> startSession(ClientSessionOptions clientSessionOptions) {
+        return mongoClient.startSession(clientSessionOptions);
+    }
 
-  @Override
-  public Publisher<ClientSession> startSession(ClientSessionOptions clientSessionOptions) {
-    return mongoClient.startSession(clientSessionOptions);
-  }
 }
