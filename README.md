@@ -16,17 +16,6 @@ pom.xml
 </dependency>
 ```
 
-### Mongo Driver Async
-
-pom.xml
-```xml
-<dependency>
-    <groupId>io.opentracing.contrib</groupId>
-    <artifactId>opentracing-mongo-driver-async</artifactId>
-    <version>VERSION</version>
-</dependency>
-```
-
 ### Mongo Driver Reactive Streams
 
 pom.xml

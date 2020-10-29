@@ -13,9 +13,16 @@
  */
 package io.opentracing.contrib.mongo;
 
-import java.util.ArrayList;
+import static com.mongodb.client.MongoClients.create;
 import java.util.List;
-import com.mongodb.*;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import com.mongodb.ClientSessionOptions;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.ReadPreference;
+import com.mongodb.client.*;
+import com.mongodb.connection.ClusterDescription;
 import io.opentracing.contrib.mongo.common.TracingCommandListener;
 
 /**
@@ -23,83 +30,247 @@ import io.opentracing.contrib.mongo.common.TracingCommandListener;
  *
  * @see MongoClient
  */
-public class TracingMongoClient extends MongoClient {
+public class TracingMongoClient implements MongoClient {
 
-    public TracingMongoClient(TracingCommandListener listener) {
-        this(listener, new ServerAddress());
+    private MongoClient mongoClient;
+
+
+    public TracingMongoClient(TracingCommandListener listener, String mongoDbUri, String applicationName) {
+        this(listener, mongoDbUri, applicationName, ReadPreference.primaryPreferred());
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final String host) {
-        this(listener, new ServerAddress(host));
+    public TracingMongoClient(TracingCommandListener listener, String mongoDbUri, String applicationName, ReadPreference readPreference) {
+        MongoClientSettings settings = MongoClientSettings.builder().addCommandListener(listener).applyConnectionString(new ConnectionString(mongoDbUri)).applicationName(applicationName)
+                .readPreference(readPreference).build();
+        this.mongoClient = create(settings);
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final String host, final MongoClientOptions options) {
-        this(listener, new ServerAddress(host), options);
+    /**
+     * @return
+     * @see java.lang.Object#hashCode()
+     */
+    @Override
+    public int hashCode() {
+        return mongoClient.hashCode();
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final String host, final int port) {
-        this(listener, new ServerAddress(host, port));
+    /**
+     * @param databaseName
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#getDatabase(java.lang.String)
+     */
+    @Override
+    public MongoDatabase getDatabase(String databaseName) {
+        return mongoClient.getDatabase(databaseName);
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr) {
-        this(listener, addr, new MongoClientOptions.Builder().build());
+    /**
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#listDatabaseNames()
+     */
+    @Override
+    public MongoIterable<String> listDatabaseNames() {
+        return mongoClient.listDatabaseNames();
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr, final MongoCredential credentialsList) {
-        this(listener, addr, credentialsList, new MongoClientOptions.Builder().build());
+    /**
+     * @param clientSession
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#listDatabaseNames(com.mongodb.client.ClientSession)
+     */
+    @Override
+    public MongoIterable<String> listDatabaseNames(ClientSession clientSession) {
+        return mongoClient.listDatabaseNames(clientSession);
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr, final MongoClientOptions options) {
-        super(addr, MongoClientOptions.builder(options).addCommandListener(listener).build());
+    /**
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#listDatabases()
+     */
+    @Override
+    public ListDatabasesIterable<Document> listDatabases() {
+        return mongoClient.listDatabases();
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr, final MongoCredential credentialsList, final MongoClientOptions options) {
-        super(addr, credentialsList, MongoClientOptions.builder(options).addCommandListener(listener).build());
+    /**
+     * @param <T>
+     * @param clazz
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#listDatabases(java.lang.Class)
+     */
+    @Override
+    public <T> ListDatabasesIterable<T> listDatabases(Class<T> clazz) {
+        return mongoClient.listDatabases(clazz);
     }
 
-
-    public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds) {
-        this(listener, seeds, new MongoClientOptions.Builder().build());
+    /**
+     * @param clientSession
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#listDatabases(com.mongodb.client.ClientSession)
+     */
+    @Override
+    public ListDatabasesIterable<Document> listDatabases(ClientSession clientSession) {
+        return mongoClient.listDatabases(clientSession);
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds, final MongoCredential credentialsList) {
-        this(listener, seeds, credentialsList, new MongoClientOptions.Builder().build());
+    /**
+     * @param <T>
+     * @param clientSession
+     * @param clazz
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#listDatabases(com.mongodb.client.ClientSession,
+     *      java.lang.Class)
+     */
+    @Override
+    public <T> ListDatabasesIterable<T> listDatabases(ClientSession clientSession, Class<T> clazz) {
+        return mongoClient.listDatabases(clientSession, clazz);
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds, final MongoClientOptions options) {
-        super(seeds, MongoClientOptions.builder(options).addCommandListener(listener).build());
+    /**
+     * @param obj
+     * @return
+     * @see java.lang.Object#equals(java.lang.Object)
+     */
+    @Override
+    public boolean equals(Object obj) {
+        return mongoClient.equals(obj);
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds, final MongoCredential credentialsList, final MongoClientOptions options) {
-        super(seeds, credentialsList, MongoClientOptions.builder(options).addCommandListener(listener).build());
+    /**
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#startSession()
+     */
+    @Override
+    public ClientSession startSession() {
+        return mongoClient.startSession();
     }
 
-
-    public TracingMongoClient(TracingCommandListener listener, final MongoClientURI uri) {
-        this(listener, uri, null);
+    /**
+     * @param options
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#startSession(com.mongodb.ClientSessionOptions)
+     */
+    @Override
+    public ClientSession startSession(ClientSessionOptions options) {
+        return mongoClient.startSession(options);
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final List<ServerAddress> seeds, final MongoCredential credential, final MongoClientOptions options,
-            final MongoDriverInformation mongoDriverInformation) {
-        super(seeds, credential, MongoClientOptions.builder(options).addCommandListener(listener).build(), mongoDriverInformation);
+    /**
+     * 
+     * @see com.mongodb.client.internal.MongoClientImpl#close()
+     */
+    @Override
+    public void close() {
+        mongoClient.close();
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final MongoClientURI uri, final MongoDriverInformation mongoDriverInformation) {
-        this(listener, toServerAddressList(uri.getHosts()), uri.getCredentials() != null ? uri.getCredentials() : null, uri.getOptions(), mongoDriverInformation);
+    /**
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch()
+     */
+    @Override
+    public ChangeStreamIterable<Document> watch() {
+        return mongoClient.watch();
     }
 
-    public TracingMongoClient(TracingCommandListener listener, final ServerAddress addr, final MongoCredential credentialsList, final MongoClientOptions options,
-            final MongoDriverInformation mongoDriverInformation) {
-        super(addr, credentialsList, MongoClientOptions.builder(options).addCommandListener(listener).build(), mongoDriverInformation);
+    /**
+     * @param <TResult>
+     * @param resultClass
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch(java.lang.Class)
+     */
+    @Override
+    public <TResult> ChangeStreamIterable<TResult> watch(Class<TResult> resultClass) {
+        return mongoClient.watch(resultClass);
     }
 
+    /**
+     * @param pipeline
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch(java.util.List)
+     */
+    @Override
+    public ChangeStreamIterable<Document> watch(List<? extends Bson> pipeline) {
+        return mongoClient.watch(pipeline);
+    }
 
-    private static List<ServerAddress> toServerAddressList(List<String> hosts) {
-        List<ServerAddress> list = new ArrayList<>();
-        for (String host : hosts) {
-            list.add(new ServerAddress(host));
-        }
-        return list;
+    /**
+     * @param <TResult>
+     * @param pipeline
+     * @param resultClass
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch(java.util.List, java.lang.Class)
+     */
+    @Override
+    public <TResult> ChangeStreamIterable<TResult> watch(List<? extends Bson> pipeline, Class<TResult> resultClass) {
+        return mongoClient.watch(pipeline, resultClass);
+    }
+
+    /**
+     * @param clientSession
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch(com.mongodb.client.ClientSession)
+     */
+    @Override
+    public ChangeStreamIterable<Document> watch(ClientSession clientSession) {
+        return mongoClient.watch(clientSession);
+    }
+
+    /**
+     * @param <TResult>
+     * @param clientSession
+     * @param resultClass
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch(com.mongodb.client.ClientSession,
+     *      java.lang.Class)
+     */
+    @Override
+    public <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession, Class<TResult> resultClass) {
+        return mongoClient.watch(clientSession, resultClass);
+    }
+
+    /**
+     * @param clientSession
+     * @param pipeline
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch(com.mongodb.client.ClientSession,
+     *      java.util.List)
+     */
+    @Override
+    public ChangeStreamIterable<Document> watch(ClientSession clientSession, List<? extends Bson> pipeline) {
+        return mongoClient.watch(clientSession, pipeline);
+    }
+
+    /**
+     * @param <TResult>
+     * @param clientSession
+     * @param pipeline
+     * @param resultClass
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#watch(com.mongodb.client.ClientSession,
+     *      java.util.List, java.lang.Class)
+     */
+    @Override
+    public <TResult> ChangeStreamIterable<TResult> watch(ClientSession clientSession, List<? extends Bson> pipeline, Class<TResult> resultClass) {
+        return mongoClient.watch(clientSession, pipeline, resultClass);
+    }
+
+    /**
+     * @return
+     * @see com.mongodb.client.internal.MongoClientImpl#getClusterDescription()
+     */
+    @Override
+    public ClusterDescription getClusterDescription() {
+        return mongoClient.getClusterDescription();
+    }
+
+    /**
+     * @return
+     * @see java.lang.Object#toString()
+     */
+    @Override
+    public String toString() {
+        return mongoClient.toString();
     }
 
 }
