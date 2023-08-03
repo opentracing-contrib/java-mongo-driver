@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
@@ -48,16 +49,20 @@ final class DefaultSpanDecorator implements SpanDecorator {
     Tags.DB_STATEMENT.set(span, event.getCommand().toString());
     Tags.DB_INSTANCE.set(span, event.getDatabaseName());
 
-    Tags.PEER_HOSTNAME.set(span, event.getConnectionDescription().getServerAddress().getHost());
+    String host = event.getConnectionDescription().getServerAddress().getHost();
+    Tags.PEER_HOSTNAME.set(span, host);
 
-    InetAddress inetAddress = event.getConnectionDescription().getServerAddress().getSocketAddress()
-        .getAddress();
+    try {
+      InetAddress inetAddress = InetAddress.getByName(host);
 
-    if (inetAddress instanceof Inet4Address) {
-      byte[] address = inetAddress.getAddress();
-      Tags.PEER_HOST_IPV4.set(span, ByteBuffer.wrap(address).getInt());
-    } else {
-      Tags.PEER_HOST_IPV6.set(span, inetAddress.getHostAddress());
+      if (inetAddress instanceof Inet4Address) {
+        byte[] address = inetAddress.getAddress();
+        Tags.PEER_HOST_IPV4.set(span, ByteBuffer.wrap(address).getInt());
+      } else {
+        Tags.PEER_HOST_IPV6.set(span, inetAddress.getHostAddress());
+      }
+    } catch (UnknownHostException var2) {
+      // ignore
     }
 
     Tags.PEER_PORT.set(span, event.getConnectionDescription().getServerAddress().getPort());
